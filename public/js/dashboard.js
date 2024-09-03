@@ -93,6 +93,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 myNotesContainer.appendChild(noteCard);
+
+                // Ukryj tekst "Brak notatek do wyświetlenia"
+                const noNotesMessage = document.querySelector('#my-notes p');
+                if (noNotesMessage) {
+                    noNotesMessage.style.display = 'none';
+                }
             } else {
                 const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
                 noteCard.querySelector('h3').textContent = title;
