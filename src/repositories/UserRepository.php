@@ -125,4 +125,11 @@ class UserRepository
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getUserByLogin($login)
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE login = :login');
+        $stmt->execute(['login' => $login]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
