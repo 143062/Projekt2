@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         if (editingNoteIndex !== -1) {
-            noteData.id = notes[editingNoteIndex].id;
+            noteData.id = modalNoteTitle.dataset.id; // Używamy dataset.id
         }
 
         console.log("Editing note index:", editingNoteIndex);
@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Note ID in modal:", noteId);
 
         modalNoteTitle.textContent = note.title;
+        modalNoteTitle.dataset.id = noteId;  // Dodanie przypisania ID do dataset
         modalNoteContent.textContent = note.content;
         friends = [...note.friends];
         updateSharedWithModal();
