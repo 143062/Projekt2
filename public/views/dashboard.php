@@ -60,6 +60,9 @@
 
         <!-- Include edit note modal -->
         <?php include 'edit_note_modal.php'; ?>
+        
+        <!-- Include share note modal -->
+        <?php include 'share_note_modal.php'; ?>
     </div>
     <script src="/public/js/dashboard.js"></script>
 </body>

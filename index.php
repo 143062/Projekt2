@@ -29,6 +29,7 @@ Router::get('register', [UserController::class, 'register']);
 Router::post('register', [UserController::class, 'register']);
 Router::get('add_note', [NoteController::class, 'addNote']);
 Router::post('add_note', [NoteController::class, 'addNote']);
+Router::get('get_note', [NoteController::class, 'editNote']); // Dodano routing do pobierania notatki
 Router::get('profile', [UserController::class, 'profile']);
 Router::post('update_profile_picture', [UserController::class, 'updateProfilePicture']);
 Router::get('admin_panel', [AdminController::class, 'adminPanel']);

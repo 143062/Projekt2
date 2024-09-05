@@ -8,6 +8,7 @@ use PDOException;
 class NoteRepository
 {
     private $pdo;
+    private $lastError;
 
     public function __construct()
     {
@@ -17,30 +18,52 @@ class NoteRepository
         $this->pdo = new PDO($dsn, $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
+        $this->lastError = null;  // Inicjalizacja zmiennej przechowującej ostatni błąd
+    }
+
+    public function getLastError()
+    {
+        return $this->lastError;
     }
 
     public function saveNote($userId, $id, $title, $content)
     {
         try {
             if ($id) {
-                // Jeśli ID istnieje, aktualizujemy notatkę
                 $stmt = $this->pdo->prepare('UPDATE notes SET title = :title, content = :content WHERE id = :id AND user_id = :user_id');
                 $params = ['id' => $id, 'user_id' => $userId, 'title' => $title, 'content' => $content];
-                error_log("Executing SQL (UPDATE): " . $stmt->queryString . " with params: " . json_encode($params));
+                $stmt->execute($params);
             } else {
-                // Jeśli ID nie istnieje, dodajemy nową notatkę
-                $stmt = $this->pdo->prepare('INSERT INTO notes (user_id, title, content) VALUES (:user_id, :title, :content)');
+                $stmt = $this->pdo->prepare('INSERT INTO notes (user_id, title, content) VALUES (:user_id, :title, :content) RETURNING id');
                 $params = ['user_id' => $userId, 'title' => $title, 'content' => $content];
-                error_log("Executing SQL (INSERT): " . $stmt->queryString . " with params: " . json_encode($params));
+                $stmt->execute($params);
+                $id = $stmt->fetchColumn();  // Pobranie wstawionego ID z RETURNING
             }
-            
-            $stmt->execute($params);
-            
-            return $id ? $id : $this->pdo->lastInsertId(); // Zwracamy ID dodanej lub zaktualizowanej notatki
+            return $id;
         } catch (PDOException $e) {
-            // Bardziej szczegółowe logowanie błędu
-            error_log("Błąd podczas zapisywania notatki: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+            // Logowanie błędu PDO
+            $this->lastError = $e->getMessage();
             return false;
+        }
+    }
+
+    public function clearSharedNotes($noteId)
+    {
+        try {
+            $stmt = $this->pdo->prepare('DELETE FROM shared_notes WHERE note_id = :note_id');
+            $stmt->execute(['note_id' => $noteId]);
+        } catch (PDOException $e) {
+            // Obsługa błędu
+        }
+    }
+
+    public function shareNoteWithUser($noteId, $sharedWithUserId)
+    {
+        try {
+            $stmt = $this->pdo->prepare('INSERT INTO shared_notes (note_id, shared_with_user_id) VALUES (:note_id, :shared_with_user_id)');
+            $stmt->execute(['note_id' => $noteId, 'shared_with_user_id' => $sharedWithUserId]);
+        } catch (PDOException $e) {
+            // Obsługa błędu
         }
     }
 
@@ -49,12 +72,6 @@ class NoteRepository
         $stmt = $this->pdo->prepare('SELECT * FROM notes WHERE user_id = :user_id ORDER BY created_at ASC');
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function shareNoteWithUser($noteId, $sharedWithUserId)
-    {
-        $stmt = $this->pdo->prepare('INSERT INTO shared_notes (note_id, shared_with_user_id) VALUES (:note_id, :shared_with_user_id)');
-        $stmt->execute(['note_id' => $noteId, 'shared_with_user_id' => $sharedWithUserId]);
     }
 
     public function getSharedNotesByUserId($userId)
@@ -67,5 +84,24 @@ class NoteRepository
         ');
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getSharedUsersByNoteId($noteId)
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT u.id, u.login, u.profile_picture 
+            FROM shared_notes sn
+            JOIN users u ON sn.shared_with_user_id = u.id
+            WHERE sn.note_id = :note_id
+        ');
+        $stmt->execute(['note_id' => $noteId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getNoteById($noteId, $userId)
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM notes WHERE id = :note_id AND user_id = :user_id');
+        $stmt->execute(['note_id' => $noteId, 'user_id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

@@ -1,0 +1,405 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2rem; /* Odstęp od krawędzi dla widoku stacjonarnego */
+}
+
+.header {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.profile-icon {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin-left: 20px; /* Ta sama odległość od krawędzi co w profile */
+    cursor: pointer;
+}
+
+.logo {
+    width: 150px;
+    height: 150px;
+    margin-right: 20px; /* Ta sama odległość od krawędzi co w profile */
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #3a3f42;
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: 50%;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    color: white;
+    outline: none;
+    width: 100%;
+    font-size: 1.5rem;
+    margin-left: 10px;
+}
+
+.search-bar input::placeholder {
+    color: #7a8285;
+}
+
+.search-bar input:focus {
+    border: none; /* Usunięcie obramowania przy fokusie */
+}
+
+.notes-section {
+    width: 100%;
+}
+
+.notes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.note-card {
+    background-color: #6DC1BC;
+    border-radius: 10px;
+    width: calc(33.33% - 10px);
+    height: 200px;
+    cursor: pointer;
+}
+
+.add-note-button {
+    position: fixed; /* Zmiana na fixed, aby przycisk podążał za scrollowaniem */
+    bottom: 50px; /* Podniesienie przycisku */
+    left: 50px; /* Przesunięcie przycisku bardziej na prawo */
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    color: white;
+    cursor: pointer;
+    border: none; /* Usunięcie domyślnej obramowania przycisku */
+    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.5); /* Dodanie cienia */
+    transition: all 0.3s ease;
+}
+
+.add-note-button:hover {
+    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7); /* Zwiększenie cienia na hover */
+}
+
+.add-note-button img {
+    width: 36px; /* Dostosowanie rozmiaru ikony */
+    height: 36px; /* Dostosowanie rozmiaru ikony */
+}
+
+.toggle-button {
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.toggle-button .material-symbols-outlined {
+    vertical-align: middle;
+    font-size: 1em;
+}
+
+/* Note Form CSS */
+.note-form-container {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.note-form {
+    display: flex;
+    flex-direction: column;
+    background: #2F3638;
+    padding: 20px;
+    border-radius: 10px;
+    width: 70%;
+    max-width: 800px;
+    position: relative;
+}
+
+.note-title, .note-content {
+    width: calc(100% - 40px);
+    margin-bottom: 10px;
+    padding: 15px; /* Zwiększenie paddingu */
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    font-size: 1.2rem; /* Zwiększenie rozmiaru czcionki */
+    color: white;
+}
+
+.note-title {
+    background: #4A5255;
+}
+
+.note-content {
+    height: 250px; /* Zwiększenie wysokości pola */
+    background: linear-gradient(to bottom, #565A60 0%, #4A5255 100%);
+    resize: none;
+}
+
+.share-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.shared-with {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.friend {
+    display: flex;
+    align-items: center;
+    background-color: #4C5F5D;
+    border-radius: 20px;
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+.friend-icon {
+    width: 40px; /* Zwiększenie rozmiaru ikony znajomego */
+    height: 40px; /* Zwiększenie rozmiaru ikony znajomego */
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.remove-icon {
+    width: 25px; /* Zwiększenie rozmiaru ikony usuwania */
+    height: 25px; /* Zwiększenie rozmiaru ikony usuwania */
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.add-friend {
+    width: 50px; /* Zwiększenie rozmiaru przycisku dodawania znajomego */
+    height: 50px; /* Zwiększenie rozmiaru przycisku dodawania znajomego */
+    background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-friend:hover {
+    background: linear-gradient(to bottom, #5985B9 0%, #8DDCC4 100%);
+    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7); /* Zwiększenie cienia na hover */
+}
+
+.add-friend img {
+    width: 30px; /* Zwiększenie rozmiaru ikony plusa */
+    height: 30px; /* Zwiększenie rozmiaru ikony plusa */
+}
+
+.save-note {
+    background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px; /* Zwiększenie rozmiaru przycisku */
+    height: 70px; /* Zwiększenie rozmiaru przycisku */
+    cursor: pointer;
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    transition: all 0.3s ease;
+}
+
+.save-note:hover {
+    background: linear-gradient(to bottom, #5985B9 0%, #8DDCC4 100%);
+    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7); /* Zwiększenie cienia na hover */
+}
+
+.save-note img {
+    width: 40px; /* Zwiększenie rozmiaru ikony check */
+    height: 40px; /* Zwiększenie rozmiaru ikony check */
+}
+
+/* Note Modal CSS */
+.note-modal-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.note-modal {
+    background: #2F3638;
+    padding: 20px;
+    border-radius: 10px;
+    width: 70%;
+    max-width: 800px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.note-modal h3, .note-modal p {
+    margin: 0 0 10px 0;
+    width: 100%;
+}
+
+.edit-note {
+    background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px; /* Rozmiar przycisku */
+    height: 70px; /* Rozmiar przycisku */
+    cursor: pointer;
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    transition: all 0.3s ease;
+}
+
+.edit-note:hover {
+    background: linear-gradient(to bottom, #5985B9 0%, #8DDCC4 100%);
+    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7); /* Zwiększenie cienia na hover */
+}
+
+.edit-note img {
+    width: 40px; /* Rozmiar ikony */
+    height: 40px; /* Rozmiar ikony */
+}
+
+/* Share Note Modal CSS */
+.share-note-modal-container {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.share-note-modal {
+    background: #2F3638;
+    padding: 20px;
+    border-radius: 10px;
+    width: 70%;
+    max-width: 800px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.share-note-modal h3 {
+    margin-bottom: 20px;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.friend-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.friend-item span {
+    flex-grow: 1;
+}
+
+.share-note-save {
+    background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Dostosowanie dla widoku mobilnego */
+@media only screen and (max-width: 767px) {
+    .container {
+        padding: 1rem; /* Zmniejszenie odstępu od krawędzi dla widoku mobilnego */
+    }
+
+    .profile-icon,
+    .logo {
+        width: 75px; /* Zmniejszenie rozmiaru dla widoku mobilnego */
+        height: 75px; /* Zmniejszenie rozmiaru dla widoku mobilnego */
+    }
+
+    .profile-icon {
+        margin-left: 0px; /* Zmniejszenie marginesu od lewej krawędzi dla widoku mobilnego */
+        margin-right: 10px; /* Dodanie marginesu po prawej stronie dla widoku mobilnego */
+    }
+
+    .logo {
+        margin-right: 0px; /* Zmniejszenie marginesu od prawej krawędzi dla widoku mobilnego */
+    }
+
+    .search-bar {
+        width: 60%; /* Zwiększenie szerokości pola wyszukiwania dla widoku mobilnego */
+    }
+
+    .notes-container {
+        gap: 5px; /* Zmniejszenie odstępu między notatkami */
+    }
+
+    .note-card {
+        width: calc(50% - 5px); /* Dostosowanie szerokości notatek dla widoku mobilnego */
+        height: 150px; /* Zmniejszenie wysokości notatek dla widoku mobilnego */
+    }
+
+    .add-note-button {
+        left: 50%; /* Przesunięcie przycisku na środek */
+        transform: translateX(-50%); /* Wyrównanie do środka */
+    }
+
+    .note-form {
+        width: 85%;
+    }
+
+    .note-modal {
+        width: 85%;
+    }
+}
