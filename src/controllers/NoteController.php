@@ -16,17 +16,24 @@ class NoteController
         $this->friendRepository = new FriendRepository();
     }
 
+    public function dashboard()
+    {
+        $userId = $_SESSION['user_id'];
+        $notes = $this->noteRepository->getNotesByUserId($userId);  // Notatki użytkownika
+        $sharedNotes = $this->noteRepository->getSharedNotesWithUser($userId);  // Notatki udostępnione przez innych użytkowników
+
+        // Przekazujemy zarówno notatki użytkownika, jak i notatki udostępnione
+        include 'public/views/dashboard.php';
+    }
+
     public function addNote()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents('php://input'), true);
             $title = $data['title'] ?? 'Brak tytułu';
             $content = $data['content'] ?? 'Brak treści';
-            $userId = $_SESSION['user_id'] ?? 'Nieznany użytkownik';
+            $userId = $_SESSION['user_id'];
             $noteId = $data['id'] ?? null;
-
-            // Usuwamy zbędne logowanie JSON dla przeglądarki
-            // echo json_encode(['success' => false, 'message' => "Log z NoteController: UserID: $userId, Title: $title, Content: $content"]);
 
             $result = $this->noteRepository->saveNote($userId, $noteId, $title, $content);
 
@@ -43,14 +50,6 @@ class NoteController
             }
             exit();
         }
-    }
-
-    public function dashboard()
-    {
-        $userId = $_SESSION['user_id'];
-        $notes = $this->noteRepository->getNotesByUserId($userId);
-        $sharedNotes = $this->noteRepository->getSharedNotesByUserId($userId);
-        include 'public/views/dashboard.php';
     }
 
     public function editNote()

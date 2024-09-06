@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(text => {
             console.log("[dashboard.js] Surowa odpowiedź z serwera:", text);
 
-            // Teraz próbujemy sparsować odpowiedź jako JSON
             try {
                 const data = JSON.parse(text);
                 console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", data);
@@ -224,8 +223,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Wyświetlenie modala notatki
     function showNoteModal(noteCard, index) {
         const noteId = noteCard.getAttribute('data-id');
+        const isShared = noteCard.getAttribute('data-shared') === 'true';  // Sprawdzenie, czy notatka jest udostępniona
 
-        // Ustawiamy editingNoteIndex na indeks wybranej notatki
         console.log(`[dashboard.js] Ustawiam editingNoteIndex na: ${index}`);
         editingNoteIndex = index;
 
@@ -250,6 +249,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Resetowanie listy znajomych
                 friends = data.sharedUsers || [];
                 updateSharedWith();
+
+                if (isShared) {
+                    editNoteButton.style.display = 'none';  // Ukrycie przycisku edycji dla udostępnionych notatek
+                } else {
+                    editNoteButton.style.display = 'inline-block';  // Pokaż przycisk edycji dla własnych notatek
+                }
 
                 noteModalContainer.style.display = 'flex';
             })

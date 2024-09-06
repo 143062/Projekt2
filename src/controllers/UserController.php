@@ -143,7 +143,7 @@ class UserController
         $userId = $_SESSION['user_id'];
         $user = $this->userRepository->getUserById($userId); // Pobierz dane użytkownika
         $notes = $this->noteRepository->getNotesByUserId($userId); // Pobierz notatki użytkownika
-        $sharedNotes = $this->noteRepository->getSharedNotesByUserId($userId); // Pobierz udostępnione notatki (jeśli potrzebne)
+        $sharedNotes = $this->noteRepository->getSharedNotesWithUser($userId); // Pobierz notatki udostępnione użytkownikowi
 
         include 'public/views/dashboard.php';
     }

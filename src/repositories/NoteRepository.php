@@ -18,7 +18,7 @@ class NoteRepository
         $this->pdo = new PDO($dsn, $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
-        $this->lastError = null;  // Inicjalizacja zmiennej przechowującej ostatni błąd
+        $this->lastError = null;
     }
 
     public function getLastError()
@@ -37,11 +37,10 @@ class NoteRepository
                 $stmt = $this->pdo->prepare('INSERT INTO notes (user_id, title, content) VALUES (:user_id, :title, :content) RETURNING id');
                 $params = ['user_id' => $userId, 'title' => $title, 'content' => $content];
                 $stmt->execute($params);
-                $id = $stmt->fetchColumn();  // Pobranie wstawionego ID z RETURNING
+                $id = $stmt->fetchColumn();
             }
             return $id;
         } catch (PDOException $e) {
-            // Logowanie błędu PDO
             $this->lastError = $e->getMessage();
             return false;
         }
@@ -74,17 +73,20 @@ class NoteRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getSharedNotesByUserId($userId)
+    public function getSharedNotesWithUser($userId)
     {
         $stmt = $this->pdo->prepare('
-            SELECT notes.* 
-            FROM notes 
-            JOIN shared_notes ON notes.id = shared_notes.note_id 
-            WHERE shared_notes.shared_with_user_id = :user_id
+            SELECT n.*, u.login AS owner_login
+            FROM notes n
+            JOIN shared_notes sn ON n.id = sn.note_id
+            JOIN users u ON u.id = n.user_id
+            WHERE sn.shared_with_user_id = :user_id
+            ORDER BY n.created_at ASC
         ');
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
 
     public function getSharedUsersByNoteId($noteId)
     {
@@ -100,8 +102,15 @@ class NoteRepository
 
     public function getNoteById($noteId, $userId)
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM notes WHERE id = :note_id AND user_id = :user_id');
+        $stmt = $this->pdo->prepare('
+            SELECT n.*
+            FROM notes n
+            LEFT JOIN shared_notes sn ON n.id = sn.note_id
+            WHERE n.id = :note_id 
+            AND (n.user_id = :user_id OR sn.shared_with_user_id = :user_id)
+        ');
         $stmt->execute(['note_id' => $noteId, 'user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    
 }

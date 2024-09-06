@@ -11,7 +11,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <!-- Użycie tej samej metody co w profile.php -->
             <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="profile-icon" onclick="location.href='/profile'">
             <div class="search-bar">
                 <img src="/public/img/search_dark.svg" alt="Szukaj">
@@ -20,9 +19,11 @@
             <img src="/public/img/logo.svg" alt="Logo" class="logo">
         </div>
         <div class="notes-section">
-            <h2>Moje notatki <span class="toggle-button" data-section="my-notes"> <span class="material-symbols-outlined">hide</span> </span></h2>
+            <!-- Sekcja notatek użytkownika -->
+            <h2>Moje notatki <span class="toggle-button" data-section="my-notes"> 
+                <span class="material-symbols-outlined">hide</span> 
+            </span></h2>
             <div class="notes-container" id="my-notes">
-                <!-- Dynamiczne ładowanie notatek użytkownika -->
                 <?php if (!empty($notes)): ?>
                     <?php foreach ($notes as $index => $note): ?>
                         <div class="note-card" data-id="<?php echo htmlspecialchars($note['id']); ?>" data-index="<?php echo $index; ?>">
@@ -34,23 +35,11 @@
                     <p>Brak notatek do wyświetlenia.</p>
                 <?php endif; ?>
             </div>
-            <h2>Notatki Adama <span class="toggle-button" data-section="adam-notes"> <span class="material-symbols-outlined">hide</span> </span></h2>
-            <div class="notes-container" id="adam-notes">
-                <div class="note-card">
-                    <h3>Tytuł notatki Adama 1</h3>
-                    <p>Treść notatki Adama 1</p>
-                </div>
-                <div class="note-card">
-                    <h3>Tytuł notatki Adama 2</h3>
-                    <p>Treść notatki Adama 2</p>
-                </div>
-                <div class="note-card">
-                    <h3>Tytuł notatki Adama 3</h3>
-                    <p>Treść notatki Adama 3</p>
-                </div>
-                <!-- Placeholder for Adam's notes -->
-            </div>
+
+            <!-- Include shared notes -->
+            <?php include 'shared_notes.php'; ?>
         </div>
+
         <button id="add-note-button" class="add-note-button">
             <img src="/public/img/plus.svg" alt="Dodaj">
         </button>
