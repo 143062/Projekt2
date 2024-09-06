@@ -67,6 +67,43 @@
     padding: 20px;
 }
 
+/* Styl dla paska wyszukiwania w admin_panel */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #3a3f42;
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: 100%; /* Pełna szerokość */
+    box-sizing: border-box; /* Padding nie będzie zwiększał szerokości */
+    margin-bottom: 20px;
+}
+
+.search-bar img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    color: white;
+    outline: none;
+    width: 100%;
+    font-size: 1.5rem;
+    margin-left: 10px;
+}
+
+.search-bar input::placeholder {
+    color: #7a8285;
+}
+
+.search-bar input:focus {
+    border: none; /* Usunięcie obramowania przy fokusie */
+}
+
+/* Styl dla tabeli */
 table {
     width: 100%;
     border-collapse: collapse;

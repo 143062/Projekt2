@@ -16,8 +16,13 @@
             <h1 class="admin-title">Panel Administratora</h1>
             <img src="/public/img/logo.svg" alt="Logo" class="logo">
         </div>
+
         <div class="content">
             <div class="table-container">
+                <div class="search-bar">
+                    <img src="/public/img/search_dark.svg" alt="Szukaj">
+                    <input type="text" id="user-search" placeholder="Szukaj użytkowników...">
+                </div>
                 <h2>Aktualni użytkownicy</h2>
                 <table>
                     <thead>
@@ -30,7 +35,7 @@
                             <th>Akcje</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="user-list">
                         <?php if (!empty($users)): ?>
                             <?php foreach ($users as $user): ?>
                                 <tr>
@@ -38,7 +43,7 @@
                                     <td><?php echo htmlspecialchars($user['role']); ?></td>
                                     <td><?php echo htmlspecialchars($user['login']); ?></td>
                                     <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($user['created_at'], 0, 19)); ?></td> <!-- Tylko do sekund -->
+                                    <td><?php echo htmlspecialchars(substr($user['created_at'], 0, 19)); ?></td>
                                     <td>
                                         <form method="post" action="/admin/delete_user" style="display:inline-block;">
                                             <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user['id']); ?>">
@@ -56,6 +61,7 @@
                     </tbody>
                 </table>
             </div>
+
             <div class="form-container">
                 <h2>Dodaj Nowego Użytkownika</h2>
                 <form method="post" action="/admin/add_user">
@@ -100,6 +106,6 @@
         </div>
     </div>
 
-    <script src="/public/js/admin.js"></script>
+    <script src="/public/js/admin_panel.js"></script>
 </body>
 </html>
