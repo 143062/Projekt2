@@ -24,11 +24,9 @@ class UserController
             $user = $this->userRepository->login($login, $password);
     
             if ($user) {
-                // Ustawienie sesji lub tokenu
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['role_id'] = $user['role_id']; // Przechowujemy role_id w sesji
-    
-                // Sprawdzenie roli użytkownika
+                $_SESSION['role_id'] = $user['role_id'];
+
                 if ($user['role_id'] === $this->getAdminRoleId()) {
                     header('Location: /admin_panel');
                 } else {
@@ -42,18 +40,17 @@ class UserController
             include 'public/views/login.php';
         }
     }
-    
-    // Funkcja pomocnicza do pobierania ID roli admin
+
     private function getAdminRoleId()
     {
         $stmt = $this->userRepository->getPdo()->prepare('SELECT id FROM Roles WHERE name = :role_name');
         $stmt->execute(['role_name' => 'admin']);
         return $stmt->fetchColumn();
     }
-    
+
     public function register()
     {
-        ob_start(); // Rozpoczyna buforowanie wyjścia
+        ob_start();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -61,7 +58,6 @@ class UserController
             $password = trim($_POST['password']);
             $confirmPassword = trim($_POST['confirm_password']);
 
-            // Sprawdź, czy hasła są takie same
             if ($password === $confirmPassword) {
                 $this->userRepository->register($email, $login, $password);
                 header('Location: /login');
@@ -73,7 +69,7 @@ class UserController
             include 'public/views/register.php';
         }
 
-        ob_end_flush(); // Wysyła zawartość bufora i kończy buforowanie
+        ob_end_flush();
     }
 
     public function profile()
@@ -86,7 +82,7 @@ class UserController
         }
 
         $userId = $_SESSION['user_id'];
-        $user = $this->userRepository->getUserById($userId); // Pobierz dane użytkownika
+        $user = $this->userRepository->getUserById($userId);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle profile update logic
@@ -110,10 +106,20 @@ class UserController
             $profilePicture = $_FILES['profile_picture'];
 
             if ($profilePicture['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = 'public/img/';
-                $uploadFile = $uploadDir . basename($profilePicture['name']);
+                // Ustawienie folderu dla zdjęć użytkownika
+                $uploadDir = 'public/img/profile/' . $userId . '/';
+                
+                // Tworzenie folderu użytkownika, jeśli nie istnieje
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
 
+                // Tworzymy nazwę pliku
+                $uploadFile = $uploadDir . 'profile.jpg';
+
+                // Przenosimy przesłany plik
                 if (move_uploaded_file($profilePicture['tmp_name'], $uploadFile)) {
+                    // Aktualizujemy ścieżkę w bazie danych
                     $this->userRepository->updateProfilePicture($userId, $uploadFile);
                     header('Location: /profile?status=updated');
                     exit();
@@ -141,9 +147,9 @@ class UserController
         }
 
         $userId = $_SESSION['user_id'];
-        $user = $this->userRepository->getUserById($userId); // Pobierz dane użytkownika
-        $notes = $this->noteRepository->getNotesByUserId($userId); // Pobierz notatki użytkownika
-        $sharedNotes = $this->noteRepository->getSharedNotesWithUser($userId); // Pobierz notatki udostępnione użytkownikowi
+        $user = $this->userRepository->getUserById($userId);
+        $notes = $this->noteRepository->getNotesByUserId($userId);
+        $sharedNotes = $this->noteRepository->getSharedNotesWithUser($userId);
 
         include 'public/views/dashboard.php';
     }

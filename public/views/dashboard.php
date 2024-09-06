@@ -11,7 +11,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile" class="profile-icon" onclick="location.href='/profile'">
+            <img src="<?php echo htmlspecialchars($user['profile_picture'] ? $user['profile_picture'] : 'public/img/profile/default/default_profile_picture.jpg'); ?>" alt="Profile" class="profile-icon" onclick="location.href='/profile'">
             <div class="search-bar">
                 <img src="/public/img/search_dark.svg" alt="Szukaj">
                 <input type="text" placeholder="Szukaj">
@@ -19,7 +19,6 @@
             <img src="/public/img/logo.svg" alt="Logo" class="logo">
         </div>
         <div class="notes-section">
-            <!-- Sekcja notatek użytkownika -->
             <h2>Moje notatki <span class="toggle-button" data-section="my-notes"> 
                 <span class="material-symbols-outlined">hide</span> 
             </span></h2>

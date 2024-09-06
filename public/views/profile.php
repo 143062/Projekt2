@@ -30,7 +30,6 @@
                 </a>
             </div>
             <div class="profile">
-                <!-- Dodano wyświetlanie komunikatów statusu -->
                 <?php if (isset($_GET['status']) && $_GET['status'] === 'updated'): ?>
                     <p class="success-message">Zdjęcie profilowe zostało zaktualizowane.</p>
                 <?php elseif (isset($_GET['status']) && $_GET['status'] === 'error'): ?>
@@ -38,7 +37,7 @@
                 <?php endif; ?>
                 
                 <!-- Wyświetlanie zdjęcia profilowego -->
-                <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
+                <img src="<?php echo htmlspecialchars($user['profile_picture'] ? $user['profile_picture'] : 'public/img/profile/default/default_profile_picture.jpg'); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
                 <p class="profile-name"><?php echo htmlspecialchars($user['login']); ?></p>
             </div>
         </div>
@@ -54,9 +53,7 @@
                 </form>
                 <div id="current-friends">
                     <h3>Aktualni znajomi</h3>
-                    <ul id="friends-list">
-                        <!-- Lista znajomych będzie tutaj dynamicznie dodawana -->
-                    </ul>
+                    <ul id="friends-list"></ul>
                 </div>
             </div>
         </div>
