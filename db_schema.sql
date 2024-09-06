@@ -15,8 +15,9 @@ CREATE TABLE Users (
     login VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    profile_picture VARCHAR(255) DEFAULT 'public/img/profile/default/default_profile_picture.jpg', -- Domyślne zdjęcie profilowe
-    role_id UUID REFERENCES Roles(id) ON DELETE SET NULL
+    profile_picture VARCHAR(255) DEFAULT 'public/img/profile/default/default_profile_picture.jpg',
+    role_id UUID REFERENCES Roles(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tworzenie tabeli notatek

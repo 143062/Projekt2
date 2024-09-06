@@ -29,12 +29,13 @@ Router::get('register', [UserController::class, 'register']);
 Router::post('register', [UserController::class, 'register']);
 Router::get('add_note', [NoteController::class, 'addNote']);
 Router::post('add_note', [NoteController::class, 'addNote']);
-Router::get('get_note', [NoteController::class, 'editNote']); // Dodano routing do pobierania notatki
+Router::get('get_note', [NoteController::class, 'editNote']);
 Router::get('profile', [UserController::class, 'profile']);
 Router::post('update_profile_picture', [UserController::class, 'updateProfilePicture']);
 Router::get('admin_panel', [AdminController::class, 'adminPanel']);
 Router::post('admin/delete_user', [AdminController::class, 'deleteUser']);
 Router::post('admin/add_user', [AdminController::class, 'addUser']);
+Router::post('admin/reset_password', [AdminController::class, 'resetPassword']);
 Router::get('dashboard', [UserController::class, 'dashboard']);
 Router::get('friends', [FriendController::class, 'friends']);
 Router::post('add-friend', [FriendController::class, 'addFriend']);

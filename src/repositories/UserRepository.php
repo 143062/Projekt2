@@ -63,44 +63,41 @@ class UserRepository
         }
     }
 
-    public function addUser($email, $login, $password)
+    public function addUser($email, $username, $password, $role)
     {
         try {
-            $stmt = $this->pdo->prepare('SELECT id FROM Roles WHERE name = :role_name');
-            $stmt->execute(['role_name' => 'user']);
+            // Pobierz ID roli na podstawie nazwy roli
+            $stmt = $this->pdo->prepare('SELECT id FROM Roles WHERE name = :role');
+            $stmt->execute(['role' => $role]);
             $roleId = $stmt->fetchColumn();
-
-            if ($roleId === false) {
-                throw new PDOException('Nie znaleziono roli "user" w tabeli Roles.');
-            }
-
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-            $stmt = $this->pdo->prepare('INSERT INTO Users (email, login, password, role_id) VALUES (:email, :login, :password, :role_id)');
+    
+            // Zaszyfruj hasło
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    
+            // Dodaj nowego użytkownika do bazy danych
+            $stmt = $this->pdo->prepare('INSERT INTO Users (email, login, password, role_id, created_at) VALUES (:email, :login, :password, :role_id, NOW())');
             $stmt->execute([
                 'email' => $email,
-                'login' => $login,
+                'login' => $username,
                 'password' => $hashedPassword,
                 'role_id' => $roleId
             ]);
-
+    
             return true;
         } catch (PDOException $e) {
-            error_log("Błąd podczas dodawania użytkownika: " . $e->getMessage());
             return false;
         }
     }
 
-    public function getAllUsersExcept($userId)
+    public function getAllUsersWithRoles()
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id != :user_id');
-        $stmt->execute(['user_id' => $userId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getAllUsers()
-    {
-        $stmt = $this->pdo->query('SELECT * FROM users');
+        $stmt = $this->pdo->prepare('
+            SELECT Users.id, Users.login, Users.email, Users.created_at, Roles.name AS role
+            FROM Users
+            JOIN Roles ON Users.role_id = Roles.id
+            ORDER BY Users.created_at ASC
+        ');
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -126,10 +123,28 @@ class UserRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getUserByLogin($login)
+    public function changeUserPassword($userId, $hashedPassword)
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE login = :login');
-        $stmt->execute(['login' => $login]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare('UPDATE Users SET password = :password WHERE id = :user_id');
+        $stmt->execute([
+            'password' => $hashedPassword,
+            'user_id' => $userId
+        ]);
+    }
+
+    // Dodana metoda updateUserPassword
+    public function updateUserPassword($userId, $hashedPassword)
+    {
+        try {
+            $stmt = $this->pdo->prepare('UPDATE Users SET password = :password WHERE id = :user_id');
+            $stmt->execute([
+                'password' => $hashedPassword,
+                'user_id' => $userId
+            ]);
+            return true;
+        } catch (PDOException $e) {
+            error_log("Błąd podczas aktualizacji hasła: " . $e->getMessage());
+            return false;
+        }
     }
 }
