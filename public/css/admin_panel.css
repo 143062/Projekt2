@@ -74,7 +74,7 @@
 .sql-dump-container form {
     display: flex;
     flex-direction: column;
-    gap: 25px; /* Dodane większe odstępy między elementami */
+    gap: 25px;
     margin-bottom: 20px;
 }
 
@@ -82,7 +82,7 @@
 .sql-import-button,
 .add-button {
     padding: 15px;
-    background-color: #2F3638; /* Ciemnoszary kolor */
+    background-color: #2F3638;
     color: white;
     border: none;
     border-radius: 5px;
@@ -90,13 +90,13 @@
     transition: background-color 0.3s ease;
     text-align: center;
     width: 100%;
-    margin-bottom: 15px; /* Odstępy pomiędzy przyciskami */
+    margin-bottom: 15px;
 }
 
 .sql-dump-container button:hover,
 .sql-import-button:hover,
 .add-button:hover {
-    background-color: #6DC1BC; /* Turkusowy kolor przy hover */
+    background-color: #6DC1BC;
 }
 
 /* Styl dla wyboru pliku */
@@ -118,7 +118,7 @@
     transition: background-color 0.3s ease;
     text-align: center;
     display: block;
-    width: 50%; /* Zmniejszona szerokość przycisku */
+    width: 50%;
     max-width: 300px;
     margin: 0 auto;
 }
@@ -139,7 +139,7 @@
 /* Styl powiadomienia */
 .alert {
     padding: 10px;
-    background-color: #6DC1BC; /* Turkusowy kolor dla powiadomienia */
+    background-color: #6DC1BC;
     color: white;
     margin-bottom: 20px;
     border-radius: 5px;
@@ -194,7 +194,7 @@ table {
 th, td {
     padding: 15px;
     border: 1px solid #4A5255;
-    text-align: left;
+    text-align: center; /* Wyśrodkowanie tekstu */
     color: #ffffff;
 }
 

@@ -132,7 +132,6 @@ class UserRepository
         ]);
     }
 
-    // Dodana metoda updateUserPassword
     public function updateUserPassword($userId, $hashedPassword)
     {
         try {

@@ -20,11 +20,11 @@
         <div class="content">
             <!-- Sekcja użytkowników -->
             <div class="table-container">
+                <h2>Użytkownicy</h2>
                 <div class="search-bar">
                     <img src="/public/img/search_dark.svg" alt="Szukaj">
-                    <input type="text" id="user-search" placeholder="Szukaj użytkowników...">
+                    <input type="text" id="user-search" placeholder="Szukaj...">
                 </div>
-                <h2>Aktualni użytkownicy</h2>
                 <table>
                     <thead>
                         <tr>
@@ -46,11 +46,11 @@
                                     <td><?php echo htmlspecialchars($user['email']); ?></td>
                                     <td><?php echo htmlspecialchars(substr($user['created_at'], 0, 19)); ?></td>
                                     <td>
+                                        <button type="button" class="reset-password-button button" data-user-id="<?php echo htmlspecialchars($user['id']); ?>" data-login="<?php echo htmlspecialchars($user['login']); ?>">Hasło</button>
                                         <form method="post" action="/admin/delete_user" style="display:inline-block;">
                                             <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user['id']); ?>">
                                             <button type="submit" class="delete-button button">Usuń</button>
                                         </form>
-                                        <button type="button" class="reset-password-button button" data-user-id="<?php echo htmlspecialchars($user['id']); ?>" data-login="<?php echo htmlspecialchars($user['login']); ?>">Hasło</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
