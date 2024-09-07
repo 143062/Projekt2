@@ -58,8 +58,15 @@ class UserController
     
             header('Content-Type: application/json'); // Oczekujemy odpowiedzi w formacie JSON
     
+            // Sprawdzanie zgodności haseł
             if ($password !== $confirmPassword) {
                 echo json_encode(['status' => 'error', 'message' => 'Hasła nie są zgodne']);
+                exit();
+            }
+    
+            // Sprawdzanie długości hasła (minimum 6 znaków)
+            if (strlen($password) < 6) {
+                echo json_encode(['status' => 'error', 'message' => 'Utwórz dłuższe hasło']);
                 exit();
             }
     
@@ -83,6 +90,7 @@ class UserController
             include 'public/views/register.php';
         }
     }
+    
     
     
 

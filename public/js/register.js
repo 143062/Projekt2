@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!password) {
             showError('Brak hasła');
             return false;
+        } else if (password.length < 6) {
+            showError('Utwórz dłuższe hasło');
+            return false;
         }
 
         // Walidacja potwierdzenia hasła
