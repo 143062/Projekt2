@@ -57,7 +57,7 @@
     align-items: center;
 }
 
-.table-container, .form-container {
+.table-container, .form-container, .sql-dump-container {
     width: 100%;
     overflow-x: auto;
     margin-top: 20px;
@@ -67,15 +67,95 @@
     padding: 20px;
 }
 
-/* Styl dla paska wyszukiwania w admin_panel */
+.sql-dump-container {
+    margin-bottom: 20px;
+}
+
+.sql-dump-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Dodane większe odstępy między elementami */
+    margin-bottom: 20px;
+}
+
+.sql-dump-container button,
+.sql-import-button,
+.add-button {
+    padding: 15px;
+    background-color: #2F3638; /* Ciemnoszary kolor */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 15px; /* Odstępy pomiędzy przyciskami */
+}
+
+.sql-dump-container button:hover,
+.sql-import-button:hover,
+.add-button:hover {
+    background-color: #6DC1BC; /* Turkusowy kolor przy hover */
+}
+
+/* Styl dla wyboru pliku */
+.file-input-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-input-label {
+    background-color: #6DC1BC;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    display: block;
+    width: 50%; /* Zmniejszona szerokość przycisku */
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.file-input-label:hover {
+    background-color: #82d4d0;
+}
+
+.file-name {
+    color: white;
+    margin-top: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Styl powiadomienia */
+.alert {
+    padding: 10px;
+    background-color: #6DC1BC; /* Turkusowy kolor dla powiadomienia */
+    color: white;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Styl dla paska wyszukiwania */
 .search-bar {
     display: flex;
     align-items: center;
     background-color: #3a3f42;
     border-radius: 20px;
     padding: 10px 20px;
-    width: 100%; /* Pełna szerokość */
-    box-sizing: border-box; /* Padding nie będzie zwiększał szerokości */
+    width: 100%;
+    box-sizing: border-box;
     margin-bottom: 20px;
 }
 
@@ -100,7 +180,7 @@
 }
 
 .search-bar input:focus {
-    border: none; /* Usunięcie obramowania przy fokusie */
+    border: none;
 }
 
 /* Styl dla tabeli */
@@ -212,20 +292,6 @@ input:focus, select:focus {
     color: #ffffff;
 }
 
-.add-button {
-    padding: 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.add-button:hover {
-    background-color: #45a049;
-}
-
 @media (max-width: 767px) {
     .profile-icon {
         width: 100px;
@@ -274,7 +340,7 @@ input:focus, select:focus {
 
 /* Styl dla modala */
 .modal {
-    display: none; /* Domyślnie ukryty */
+    display: none;
     justify-content: center;
     align-items: center;
     position: fixed;
@@ -283,11 +349,11 @@ input:focus, select:focus {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Przyciemnienie tła */
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
 .modal-content {
-    background-color: #2F3638; /* Zmiana koloru na ciemny, zgodnie z designem strony */
+    background-color: #2F3638;
     color: white;
     padding: 20px;
     border: none;
@@ -316,13 +382,15 @@ input:focus, select:focus {
 }
 
 .reset-button {
-    padding: 10px;
-    background-color: #4CAF50;
+    padding: 15px;
+    background-color: #6DC1BC;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    text-align: center;
+    width: 100%;
 }
 
 .reset-button:hover {

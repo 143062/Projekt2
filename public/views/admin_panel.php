@@ -18,6 +18,7 @@
         </div>
 
         <div class="content">
+            <!-- Sekcja użytkowników -->
             <div class="table-container">
                 <div class="search-bar">
                     <img src="/public/img/search_dark.svg" alt="Szukaj">
@@ -62,6 +63,7 @@
                 </table>
             </div>
 
+            <!-- Sekcja dodawania użytkownika -->
             <div class="form-container">
                 <h2>Dodaj Nowego Użytkownika</h2>
                 <form method="post" action="/admin/add_user">
@@ -85,6 +87,23 @@
                         </select>
                     </div>
                     <button type="submit" class="add-button">Dodaj Użytkownika</button>
+                </form>
+            </div>
+
+            <!-- Sekcja SQL Dump i Import -->
+            <div class="sql-dump-container">
+                <h2>Zarządzanie Bazą Danych</h2>
+                <div id="import-status" class="alert" style="display: none;"></div> <!-- Miejsce na komunikat o sukcesie/błędzie -->
+                <form method="post" action="/admin/sql_dump">
+                    <button type="submit" class="sql-dump-button">Pobierz SQL Dump</button>
+                </form>
+                <form method="post" action="/admin/sql_import" enctype="multipart/form-data" id="sql-import-form">
+                    <div class="file-input-container">
+                        <label for="sql-file" class="file-input-label">Wybierz plik SQL</label>
+                        <input type="file" id="sql-file" name="sql_file" class="file-input">
+                        <span class="file-name">Nie wybrano pliku</span>
+                    </div>
+                    <button type="submit" class="sql-import-button">Importuj SQL</button>
                 </form>
             </div>
         </div>

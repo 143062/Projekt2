@@ -1,5 +1,10 @@
-FROM php:7.4.3-fpm-alpine3.11
+FROM php:7.4-fpm-alpine
 
+# Dodaj repozytorium edge, aby zainstalować postgresql16-client
+RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
+    --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community postgresql16-client
+
+# Kontynuacja instalacji reszty zależności PHP
 ENV RUN_DEPS \
     zlib \
     libzip \
@@ -31,7 +36,7 @@ RUN apk add --no-cache --virtual .run-deps $RUN_DEPS
 
 RUN echo 'memory_limit = -1' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini;
 
-# Copy the application code
+# Kopiowanie plików aplikacji
 COPY . /app
 
 VOLUME ["/app"]
