@@ -1,0 +1,86 @@
+.register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+}
+
+.register-form input {
+    background-color: #606B6E; /* Kolor tła inputów */
+    border: none;
+    border-radius: 30px; /* Zaokrąglenie rogów */
+    padding: 20px;
+    color: #ffffff; /* Kolor tekstu */
+    width: 300px;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.register-form input::placeholder {
+    color: #d3d3d3; /* Kolor tekstu placeholder */
+    opacity: 1; /* Usunięto przezroczystość */
+}
+
+.register-form button {
+    background: linear-gradient(180deg, #7FA6C0 0%, #83CDCE 100%); /* Gradient od góry do dołu */
+    border: none;
+    border-radius: 30px; /* Zaokrąglenie rogów */
+    padding: 20px;
+    color: white;
+    cursor: pointer;
+    width: 320px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    font-size: 20px;
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4); /* Cień */
+}
+
+.register-form button:hover {
+    background: linear-gradient(180deg, #83CDCE 0%, #7FA6C0 100%); /* Gradient od góry do dołu */
+}
+
+/* Styl dla wiadomości o błędzie */
+.error-container {
+    width: 100%; /* Ustawia szerokość rodzica na pełną szerokość formularza */
+    display: flex; /* Użyj flexbox, aby wycentrować powiadomienie */
+    justify-content: center; /* Wycentrowanie poziome */
+    align-items: center; /* Wycentrowanie pionowe */
+}
+
+/* Styl dla wiadomości o błędzie */
+.error-message {
+    color: #ffffff; /* Biały tekst dla lepszej czytelności */
+    background-color: #e57373; /* Ciemniejszy odcień czerwonego tła */
+    border-radius: 20px;
+    padding: 15px;
+    text-align: center;
+    width: 90%; /* Stała szerokość na 90% */
+    font-size: 18px;
+    margin: 10px auto; /* Wyśrodkowanie i ustawienie marginesu góra-dół */
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3); /* Cień dla błędów */
+    box-sizing: border-box;
+}
+
+@media only screen and (max-width: 768px) {
+    .register-form button {
+        width: 48%;
+    }
+
+    .buttons-container {
+        display: flex;
+        flex-direction: row-reverse; /* Przyciski są teraz w odwrotnej kolejności */
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .form_redirect {
+        text-align: center;
+        width: 48%;
+    }
+
+    .error-message {
+        font-size: 16px; /* Możemy zmniejszyć czcionkę dla lepszego dopasowania na mobilnych */
+        max-width: 320px; /* Maksymalna szerokość dla mobilnych */
+    }
+}

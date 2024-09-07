@@ -63,18 +63,29 @@ class UserRepository
         }
     }
 
+    public function emailExists($email)
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE email = :email');
+        $stmt->execute(['email' => $email]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function loginExists($login)
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE login = :login');
+        $stmt->execute(['login' => $login]);
+        return $stmt->fetchColumn() > 0;
+    }
+
     public function addUser($email, $username, $password, $role)
     {
         try {
-            // Pobierz ID roli na podstawie nazwy roli
             $stmt = $this->pdo->prepare('SELECT id FROM Roles WHERE name = :role');
             $stmt->execute(['role' => $role]);
             $roleId = $stmt->fetchColumn();
-    
-            // Zaszyfruj hasło
+
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    
-            // Dodaj nowego użytkownika do bazy danych
+
             $stmt = $this->pdo->prepare('INSERT INTO Users (email, login, password, role_id, created_at) VALUES (:email, :login, :password, :role_id, NOW())');
             $stmt->execute([
                 'email' => $email,
@@ -82,7 +93,7 @@ class UserRepository
                 'password' => $hashedPassword,
                 'role_id' => $roleId
             ]);
-    
+
             return true;
         } catch (PDOException $e) {
             return false;
