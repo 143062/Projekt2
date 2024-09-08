@@ -16,6 +16,7 @@ document.getElementById('file-input').addEventListener('change', function () {
 
 document.addEventListener('DOMContentLoaded', function() {
     const friendsModal = document.getElementById('manage-friends-modal');
+    const profileModal = document.getElementById('profile-form-modal');
     const friendsBtn = document.getElementById('friends-button');
     const closeFriendsModal = document.querySelector('.manage-friends-modal .back-button');
     const closeProfileFormModal = document.getElementById('close-profile-form-modal');
@@ -23,39 +24,63 @@ document.addEventListener('DOMContentLoaded', function() {
     message.style.display = 'none';
     document.getElementById('add-friend-form').appendChild(message);
 
-    const errorMessage = document.getElementById('friend-error-message'); // Referencja do miejsca na błąd
+    // Funkcja wyświetlająca komunikaty
+    function showMessage(messageText, color) {
+        message.textContent = messageText;
+        message.style.color = color;
+        message.style.display = 'block';
+    }
 
-    // Funkcja do walidacji pustego pola znajomego
+    // Funkcja resetująca komunikaty
+    function resetMessage() {
+        message.style.display = 'none';
+        message.textContent = '';
+    }
+
+    const errorMessage = document.getElementById('friend-error-message'); 
+
     function validateFriendLogin() {
         const friendLogin = document.getElementById('friend-login').value.trim();
         
         if (!friendLogin) {
-            errorMessage.textContent = 'Proszę wpisać login znajomego';
-            errorMessage.style.display = 'block'; // Pokaż wiadomość o błędzie
-            return false; // Zatrzymaj wysyłanie formularza, jeśli pole jest puste
+            showMessage('Proszę wpisać login znajomego', 'red');
+            return false;
         }
-        errorMessage.style.display = 'none'; // Ukryj wiadomość, jeśli pole nie jest puste
+        resetMessage(); 
         return true;
     }
 
     friendsBtn.onclick = function() {
         console.log('Otwieranie modala znajomych');
         friendsModal.style.display = 'flex';
-        loadFriends(); // Ładuj znajomych przy otwieraniu modal
+        loadFriends();
     };
 
     closeFriendsModal.onclick = function() {
         friendsModal.style.display = 'none';
         console.log('Zamykanie modala znajomych');
-        resetMessage(); // Resetowanie wiadomości przy zamknięciu modala
+        resetMessage();
     };
 
     closeProfileFormModal.onclick = function() {
         document.getElementById('profile-form-modal').style.display = 'none';
     };
 
+    window.onclick = function(event) {
+        if (event.target === friendsModal) {
+            friendsModal.style.display = 'none';
+            console.log('Kliknięcie poza modal - zamykanie modala znajomych');
+            resetMessage();
+        }
+        if (event.target === profileModal) {
+            profileModal.style.display = 'none';
+            console.log('Kliknięcie poza modal - zamykanie modala profilowego');
+            resetMessage();
+        }
+    };
+
     document.getElementById('add-friend-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Zatrzymaj domyślną akcję wysyłania formularza
+        event.preventDefault(); 
         if (!validateFriendLogin()) {
             return;
         }
@@ -72,52 +97,32 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             console.log('Odpowiedź serwera (tekst):');
-            return response.text(); // Zwróć odpowiedź jako tekst
+            return response.text(); 
         })
         .then(text => {
             console.log('Odpowiedź serwera (pełna treść):', text);
             try {
-                const data = JSON.parse(text); // Spróbuj sparsować odpowiedź do JSON
+                const data = JSON.parse(text);
                 console.log('Dane z serwera (JSON):', data);
                 
                 if (data.success) {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = friendLogin;
-
-                    // Dodaj przycisk "Usuń"
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Usuń';
-                    deleteButton.classList.add('delete-friend-button');
-                    deleteButton.onclick = function() {
-                        removeFriend(friendLogin);
-                    };
-
-                    listItem.appendChild(deleteButton);
-                    document.getElementById('friends-list').appendChild(listItem);
+                    loadFriends();
                     document.getElementById('friend-login').value = '';
-                    message.textContent = 'Znajomy został dodany pomyślnie';
-                    message.style.color = 'green';
+                    showMessage('Znajomy został dodany pomyślnie', 'green');
                 } else {
-                    message.textContent = data.message;
-                    message.style.color = 'red';
+                    showMessage(data.message, 'red');
                 }
-                message.style.display = 'block';
             } catch (error) {
                 console.error('Błąd podczas parsowania JSON:', error);
-                message.textContent = 'Wystąpił problem z dodaniem znajomego. Spróbuj ponownie';
-                message.style.color = 'red';
-                message.style.display = 'block';
+                showMessage('Wystąpił problem z dodaniem znajomego. Spróbuj ponownie', 'red');
             }
         })
         .catch(error => {
             console.error('Błąd podczas dodawania znajomego:', error);
-            message.textContent = 'Wystąpił problem z dodaniem znajomego. Spróbuj ponownie';
-            message.style.color = 'red';
-            message.style.display = 'block';
+            showMessage('Wystąpił problem z dodaniem znajomego. Spróbuj ponownie', 'red');
         });
     });
 
-    // Funkcja usuwania znajomego
     function removeFriend(friendLogin) {
         console.log(`Próba usunięcia znajomego: ${friendLogin}`);
         fetch('/remove-friend', {
@@ -128,18 +133,18 @@ document.addEventListener('DOMContentLoaded', function() {
             body: new URLSearchParams({ friend_login: friendLogin })
         })
         .then(response => {
-            // Wyświetl pełną odpowiedź, zanim spróbujesz ją sparsować jako JSON
             console.log('Pełna odpowiedź z serwera:', response);
-            return response.text(); // Pobierz odpowiedź jako tekst
+            return response.text(); 
         })
         .then(text => {
             console.log('Odpowiedź serwera (pełna treść):', text);
             try {
-                const data = JSON.parse(text); // Spróbuj sparsować odpowiedź do JSON
+                const data = JSON.parse(text);
                 console.log('Dane z serwera (JSON):', data);
                 if (data.success) {
                     console.log(`Znajomy ${friendLogin} został usunięty.`);
-                    loadFriends(); // Odśwież listę znajomych
+                    loadFriends();
+                    showMessage('Znajomy został pomyślnie usunięty', 'green'); // Dodanie powiadomienia o usunięciu
                 } else {
                     console.error('Błąd podczas usuwania znajomego:', data.message);
                     console.error(`Log serwera: ${data.log}`);
@@ -152,8 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Błąd podczas usuwania znajomego:', error);
         });
     }
-    
-    
+
     function loadFriends() {
         console.log('Ładowanie znajomych');
         fetch('/friends')
@@ -161,12 +165,23 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 console.log('Dane znajomych z serwera:', data);
                 const friendsList = document.getElementById('friends-list');
-                friendsList.innerHTML = ''; // Czyść listę przed załadowaniem
+                friendsList.innerHTML = '';
                 data.forEach(friend => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = friend.login;
-    
-                    // Dodaj przycisk "Usuń" do każdego znajomego
+                    const friendItem = document.createElement('div');
+                    friendItem.classList.add('friend-item');
+
+                    const friendProfilePic = document.createElement('img');
+                    friendProfilePic.src = friend.profile_picture ? friend.profile_picture : '/public/img/default_profile_picture.png';
+                    friendProfilePic.alt = 'Profilowe';
+                    friendProfilePic.classList.add('friend-profile-picture');
+
+                    const friendLogin = document.createElement('span');
+                    friendLogin.textContent = friend.login;
+
+                    friendItem.appendChild(friendProfilePic);
+                    friendItem.appendChild(friendLogin);
+
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Usuń';
                     deleteButton.classList.add('delete-friend-button');
@@ -174,7 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log(`Kliknięto przycisk "Usuń" dla znajomego: ${friend.login}`);
                         removeFriend(friend.login);
                     };
-    
+
+                    listItem.appendChild(friendItem);
                     listItem.appendChild(deleteButton);
                     friendsList.appendChild(listItem);
                 });
@@ -182,11 +198,5 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Błąd podczas ładowania znajomych:', error);
             });
-    }
-    
-
-    function resetMessage() {
-        message.style.display = 'none';
-        message.textContent = '';
     }
 });

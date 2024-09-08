@@ -5,7 +5,7 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    padding: 0 2rem; /* Odstęp od krawędzi */
+    padding: 0 2rem;
 }
 
 .top-bar {
@@ -27,34 +27,34 @@
 }
 
 .back-icon {
-    width: 48px; /* Ustawienia szerokości ikony */
-    height: 48px; /* Ustawienia wysokości ikony */
+    width: 48px;
+    height: 48px;
 }
 
 .logo {
-    width: 150px; /* Powiększenie logo */
-    height: 150px; /* Powiększenie logo */
+    width: 150px;
+    height: 150px;
 }
 
 .profile-container {
     display: flex;
     flex: 1;
     width: 100%;
-    max-width: 1200px; /* Maksymalna szerokość kontenera */
+    max-width: 1200px;
     justify-content: space-between;
     align-items: center;
-    flex-direction: column; /* Domyślna kolumna dla widoku mobilnego */
+    flex-direction: column;
 }
 
 .menu {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background-color: #4A5255; /* Zmieniony kolor tła menu */
+    background-color: #4A5255;
     padding: 20px;
     border-radius: 10px;
     align-items: center;
-    width: 250px; /* Zwiększona szerokość menu */
+    width: 250px;
     position: relative;
 }
 
@@ -69,7 +69,7 @@
     align-items: center;
     gap: 10px;
     justify-content: center;
-    width: calc(100% - 40px); /* Ustawienie szerokości menu-item */
+    width: calc(100% - 40px);
 }
 
 .menu-item:hover {
@@ -77,7 +77,7 @@
 }
 
 .menu-divider {
-    width: 100%; /* Przywrócona szerokość menu-divider */
+    width: 100%;
     height: 1px;
     background-color: #7FA6C0;
 }
@@ -86,18 +86,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px; /* Zwiększony odstęp między elementami profilu */
+    gap: 20px;
 }
 
 .profile-picture {
-    width: 300px; /* Zwiększona szerokość zdjęcia */
-    height: 300px; /* Zwiększona wysokość zdjęcia */
+    width: 300px;
+    height: 300px;
     border-radius: 20px;
     object-fit: cover;
 }
 
 .profile-name {
-    font-size: 36px; /* Zwiększona czcionka imienia */
+    font-size: 36px;
     color: #ffffff;
 }
 
@@ -122,7 +122,7 @@
     background-color: #2F3638;
     padding: 20px;
     border-radius: 10px;
-    width: 300px; /* Stała szerokość okna */
+    width: 300px;
 }
 
 .manage-friends-modal {
@@ -158,8 +158,8 @@
 }
 
 .manage-friends-modal-content .back-button .back-icon {
-    width: 24px; /* Zmniejszone szerokości ikony w modalach */
-    height: 24px; /* Zmniejszone wysokości ikony w modalach */
+    width: 24px;
+    height: 24px;
 }
 
 .profile-form .back-button {
@@ -169,8 +169,8 @@
 }
 
 .profile-form .back-button .back-icon {
-    width: 24px; /* Zmniejszone szerokości ikony w modalach */
-    height: 24px; /* Zmniejszone wysokości ikony w modalach */
+    width: 24px;
+    height: 24px;
 }
 
 #add-friend-form {
@@ -222,23 +222,43 @@
     padding: 10px;
     border-bottom: 1px solid #7FA6C0;
     display: flex;
-    justify-content: space-between; /* Dodano, aby przycisk był po prawej stronie */
+    align-items: center;
+    justify-content: space-between;
+}
+
+.friend-profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
 }
 
 .delete-friend-button {
-    background-color: #ff4d4d; /* Kolor czerwony */
+    background-color: #ff4d4d;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: auto; /* Ograniczenie szerokości przycisku */
+    width: auto; 
+    min-width: 60px; 
+    text-align: center; 
+    margin-left: auto; 
 }
 
 .delete-friend-button:hover {
-    background-color: #cc0000; /* Ciemniejszy czerwony na hover */
+    background-color: #cc0000;
 }
+
 
 .file-input {
     display: none;
@@ -264,13 +284,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%; /* Ograniczenie maksymalnej szerokości */
+    max-width: 100%;
 }
 
 .form-buttons {
     display: flex;
     gap: 10px;
-    width: 35%; /* Zmniejszenie szerokości przycisku */
+    width: 35%;
 }
 
 button {
@@ -278,49 +298,49 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    width: 100%; /* Rozszerzenie przycisku na całą szerokość */
+    width: 100%;
 }
 
 #upload-button {
-    background-color: #4CAF50; /* Zmieniono kolor na bardziej zielony */
+    background-color: #4CAF50;
     color: white;
 }
 
 @media only screen and (max-width: 767px) {
     .profile-container {
-        flex-direction: column; /* Kolumna dla widoku mobilnego */
-        align-items: center; /* Wyśrodkowanie elementów */
-        gap: 0; /* Usunięcie gap */
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
     }
 
     .menu {
-        width: 95%; /* Szerokość menu na 95% szerokości ekranu w widoku mobilnym */
-        margin-top: 20px; /* Podniesienie menu */
-        margin-bottom: 20px; /* Dodanie marginesu dolnego */
+        width: 95%;
+        margin-top: 20px;
+        margin-bottom: 20px;
     }
 
     .profile {
-        margin-top: 150px; /* Dodatkowy margines, aby przesunąć profil poniżej logo */
-        order: -1; /* Umieszczenie profilu przed menu */
+        margin-top: 150px;
+        order: -1;
     }
 
     .profile-picture {
-        width: 250px; /* Zmniejszona szerokość zdjęcia w widoku mobilnym */
-        height: 250px; /* Zmniejszona wysokość zdjęcia w widoku mobilnym */
+        width: 250px;
+        height: 250px;
     }
 
     .profile-name {
-        font-size: 30px; /* Zmniejszona czcionka imienia w widoku mobilnym */
+        font-size: 30px;
     }
 
     .logo {
-        width: 100px; /* Zmniejszenie logo w widoku mobilnym */
-        height: 100px; /* Zmniejszenie logo w widoku mobilnym */
+        width: 100px;
+        height: 100px;
     }
 }
 
 @media only screen and (min-width: 768px) {
     .profile-container {
-        flex-direction: row; /* Układ w wierszu dla widoku stacjonarnego */
+        flex-direction: row;
     }
 }

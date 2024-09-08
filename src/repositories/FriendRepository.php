@@ -41,8 +41,9 @@ class FriendRepository
 
     public function getFriendsByUserId($userId)
     {
+        // Dodanie zdjęcia profilowego do zwracanego zapytania
         $stmt = $this->pdo->prepare('
-            SELECT users.id, users.login, users.email 
+            SELECT users.id, users.login, users.email, users.profile_picture
             FROM users 
             JOIN friends ON users.id = friends.friend_id 
             WHERE friends.user_id = :user_id
@@ -50,6 +51,7 @@ class FriendRepository
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
 
     public function getUserIdByLogin($login)
     {
