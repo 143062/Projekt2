@@ -30,12 +30,6 @@
                 </a>
             </div>
             <div class="profile">
-                <?php if (isset($_GET['status']) && $_GET['status'] === 'updated'): ?>
-                    <p class="success-message">Zdjęcie profilowe zostało zaktualizowane</p>
-                <?php elseif (isset($_GET['status']) && $_GET['status'] === 'error'): ?>
-                    <p class="error-message">Wystąpił problem podczas aktualizacji zdjęcia profilowego</p>
-                <?php endif; ?>
-                
                 <!-- Wyświetlanie zdjęcia profilowego -->
                 <img src="<?php echo htmlspecialchars($user['profile_picture'] ? $user['profile_picture'] : 'public/img/profile/default/default_profile_picture.jpg'); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
                 <p class="profile-name"><?php echo htmlspecialchars($user['login']); ?></p>

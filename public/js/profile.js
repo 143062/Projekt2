@@ -17,6 +17,9 @@ document.getElementById('file-input').addEventListener('change', function () {
 document.addEventListener('DOMContentLoaded', function() {
     const friendsModal = document.getElementById('manage-friends-modal');
     const profileModal = document.getElementById('profile-form-modal');
+    const profileForm = document.getElementById('profile-form');
+    const profilePicture = document.querySelector('.profile-picture'); 
+    const fileInput = document.getElementById('file-input'); // Referencja do inputu wyboru pliku
     const friendsBtn = document.getElementById('friends-button');
     const closeFriendsModal = document.querySelector('.manage-friends-modal .back-button');
     const closeProfileFormModal = document.getElementById('close-profile-form-modal');
@@ -35,6 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetMessage() {
         message.style.display = 'none';
         message.textContent = '';
+    }
+
+    // Resetowanie wartości inputu pliku
+    function resetFileInput() {
+        fileInput.value = ''; // Resetuje wartość inputu pliku
+        document.getElementById('file-name').textContent = ''; // Resetuje tekst wybranego pliku
     }
 
     const errorMessage = document.getElementById('friend-error-message'); 
@@ -64,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     closeProfileFormModal.onclick = function() {
         document.getElementById('profile-form-modal').style.display = 'none';
+        resetFileInput(); // Resetuj pole pliku, gdy modal zostaje zamknięty
     };
 
     window.onclick = function(event) {
@@ -74,10 +84,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === profileModal) {
             profileModal.style.display = 'none';
-            console.log('Kliknięcie poza modal - zamykanie modala profilowego');
+            resetFileInput(); // Resetuj pole pliku, gdy modal zostaje zamknięty
             resetMessage();
         }
     };
+
+    // Funkcja zmieniająca zdjęcie profilowe
+    profileForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(profileForm);
+        fetch('/update_profile_picture', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Zaktualizuj dynamicznie zdjęcie profilowe bez przeładowywania strony
+                profilePicture.src = data.newProfilePictureUrl + '?' + new Date().getTime(); // Załaduj nowe zdjęcie, aby ominąć cache
+                profileModal.style.display = 'none'; // Zamknij modal
+                resetFileInput(); // Resetuj pole pliku po udanej aktualizacji zdjęcia
+            } else {
+                showMessage('Wystąpił problem z aktualizacją zdjęcia', 'red');
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas zmiany zdjęcia profilowego:', error);
+            showMessage('Wystąpił problem z aktualizacją zdjęcia', 'red');
+        });
+    });
 
     document.getElementById('add-friend-form').addEventListener('submit', function(event) {
         event.preventDefault(); 
@@ -144,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     console.log(`Znajomy ${friendLogin} został usunięty.`);
                     loadFriends();
-                    showMessage('Znajomy został pomyślnie usunięty', 'green'); // Dodanie powiadomienia o usunięciu
+                    showMessage('Znajomy został pomyślnie usunięty', 'green');
                 } else {
                     console.error('Błąd podczas usuwania znajomego:', data.message);
                     console.error(`Log serwera: ${data.log}`);

@@ -116,43 +116,49 @@ class UserController
     public function updateProfilePicture()
     {
         session_start();
-
+    
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
             exit();
         }
-
+    
         $userId = $_SESSION['user_id'];
-
+    
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) {
             $profilePicture = $_FILES['profile_picture'];
-
+    
             if ($profilePicture['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = 'public/img/profile/' . $userId . '/';
-
+    
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-
+    
                 $uploadFile = $uploadDir . 'profile.jpg';
-
+    
                 if (move_uploaded_file($profilePicture['tmp_name'], $uploadFile)) {
                     $this->userRepository->updateProfilePicture($userId, $uploadFile);
-                    header('Location: /profile?status=updated');
+                    
+                    // Zwracamy odpowiedź JSON zamiast przekierowania
+                    echo json_encode([
+                        'success' => true,
+                        'newProfilePictureUrl' => '/' . $uploadFile // Zwracamy URL nowego zdjęcia
+                    ]);
                     exit();
                 } else {
-                    header('Location: /profile?status=error');
+                    echo json_encode(['success' => false, 'message' => 'Błąd podczas zapisywania pliku']);
                     exit();
                 }
             } else {
-                header('Location: /profile?status=error');
+                echo json_encode(['success' => false, 'message' => 'Błąd podczas przesyłania pliku']);
                 exit();
             }
         }
-
-        header('Location: /profile');
+    
+        echo json_encode(['success' => false, 'message' => 'Brak pliku do przesłania']);
         exit();
     }
+    
 
     public function dashboard()
     {
