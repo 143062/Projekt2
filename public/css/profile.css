@@ -181,29 +181,45 @@
 }
 
 #friend-login {
-    padding: 10px;
+    background-color: #606B6E;
     border: none;
-    border-radius: 5px;
-    outline: none;
-    font-size: 16px;
+    border-radius: 15px;
+    padding: 15px;
     color: #ffffff;
-    background-color: #4A5255;
     width: 100%;
+    text-align: left;
+    font-size: 18px;
+    margin-bottom: 25px;
+    transition: box-shadow 0.3s ease;
     box-sizing: border-box;
 }
 
+#friend-login::placeholder {
+    color: #d3d3d3;
+    opacity: 1;
+}
+
+#friend-login:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
 #add-friend-form button {
-    padding: 10px;
-    background-color: #4CAF50;
+    padding: 15px 30px;
+    background: linear-gradient(180deg, #7FA6C0 0%, #83CDCE 100%);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
 }
 
 #add-friend-form button:hover {
-    background-color: #45a049;
+    background: linear-gradient(180deg, #83CDCE 0%, #7FA6C0 100%);
 }
 
 #current-friends {
@@ -249,33 +265,32 @@
     padding: 5px 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: auto; 
-    min-width: 60px; 
-    text-align: center; 
-    margin-left: auto; 
+    width: auto;
+    min-width: 60px;
+    text-align: center;
+    margin-left: auto;
 }
 
 .delete-friend-button:hover {
     background-color: #cc0000;
 }
 
-
 .file-input {
     display: none;
 }
 
 .file-input-label {
-    background-color: #6DC1BC;
+    background-color: #4A5255; /* Ciemnoszary kolor */
     color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 18px 30px; /* Powiększona wysokość */
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     text-align: center;
 }
 
 .file-input-label:hover {
-    background-color: #82d4d0;
+    background-color: #6C7376; /* Jaśniejszy odcień przy hoverze */
 }
 
 .file-name {
@@ -290,20 +305,25 @@
 .form-buttons {
     display: flex;
     gap: 10px;
-    width: 35%;
-}
-
-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    justify-content: center; /* Wyśrodkowanie przycisku */
     width: 100%;
 }
 
 #upload-button {
-    background-color: #4CAF50;
+    padding: 15px 35px; /* Lekko zmniejszona szerokość */
+    background: linear-gradient(180deg, #7FA6C0 0%, #83CDCE 100%);
     color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    width: auto;
+    text-align: center;
+    font-size: 18px;
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
+}
+
+#upload-button:hover {
+    background: linear-gradient(180deg, #83CDCE 0%, #7FA6C0 100%);
 }
 
 @media only screen and (max-width: 767px) {
