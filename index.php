@@ -42,6 +42,7 @@ Router::post('admin/sql_import', [AdminController::class, 'sqlImport']);
 Router::get('dashboard', [UserController::class, 'dashboard']);
 Router::get('friends', [FriendController::class, 'friends']);
 Router::post('add-friend', [FriendController::class, 'addFriend']);
+Router::post('remove-friend', [FriendController::class, 'deleteFriend']);
 Router::get('logout', [LogoutController::class, 'logout']);
 
 Router::run($path);

@@ -62,4 +62,42 @@ class FriendController
             exit();
         }
     }
+
+    public function deleteFriend()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            session_start();
+            $userId = $_SESSION['user_id'];
+            $friendLogin = trim($_POST['friend_login']);
+    
+            header('Content-Type: application/json');
+    
+            if (empty($friendLogin)) {
+                echo json_encode(['success' => false, 'message' => 'ID znajomego jest wymagane', 'log' => 'Brak podanego loginu znajomego']);
+                exit();
+            }
+    
+            $friendId = $this->userRepository->getUserIdByLogin($friendLogin);
+            if (!$friendId) {
+                echo json_encode(['success' => false, 'message' => 'Nie znaleziono znajomego', 'log' => "Login $friendLogin nie istnieje w bazie"]);
+                exit();
+            }
+    
+            $result = $this->friendRepository->deleteFriend($userId, $friendId);
+    
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Znajomy został usunięty', 'log' => "Znajomy o loginie $friendLogin został usunięty dla użytkownika $userId"]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Nie udało się usunąć znajomego', 'log' => "Błąd podczas usuwania znajomego $friendLogin dla użytkownika $userId"]);
+            }
+            exit();
+        } else {
+            // W przypadku innej metody niż POST, zwróć błąd w formacie JSON
+            echo json_encode(['success' => false, 'message' => 'Niewłaściwa metoda HTTP', 'log' => 'Metoda nie jest POST']);
+            exit();
+        }
+    }
+    
+    
+    
 }

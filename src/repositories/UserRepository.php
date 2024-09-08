@@ -142,6 +142,14 @@ class UserRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    // Nowa metoda do pobierania ID użytkownika na podstawie loginu
+    public function getUserIdByLogin($login)
+    {
+        $stmt = $this->pdo->prepare('SELECT id FROM users WHERE login = :login');
+        $stmt->execute(['login' => $login]);
+        return $stmt->fetchColumn();
+    }
+
     // Nowa metoda sprawdzająca, czy użytkownik ma rolę "admin"
     public function isAdmin($userId)
     {

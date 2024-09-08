@@ -1,0 +1,326 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 0 2rem; /* Odstęp od krawędzi */
+}
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    justify-content: space-between;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    color: #6DC1BC;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.back-icon {
+    width: 48px; /* Ustawienia szerokości ikony */
+    height: 48px; /* Ustawienia wysokości ikony */
+}
+
+.logo {
+    width: 150px; /* Powiększenie logo */
+    height: 150px; /* Powiększenie logo */
+}
+
+.profile-container {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    max-width: 1200px; /* Maksymalna szerokość kontenera */
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column; /* Domyślna kolumna dla widoku mobilnego */
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #4A5255; /* Zmieniony kolor tła menu */
+    padding: 20px;
+    border-radius: 10px;
+    align-items: center;
+    width: 250px; /* Zwiększona szerokość menu */
+    position: relative;
+}
+
+.menu-item {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    width: calc(100% - 40px); /* Ustawienie szerokości menu-item */
+}
+
+.menu-item:hover {
+    background-color: #7FA6C0;
+}
+
+.menu-divider {
+    width: 100%; /* Przywrócona szerokość menu-divider */
+    height: 1px;
+    background-color: #7FA6C0;
+}
+
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Zwiększony odstęp między elementami profilu */
+}
+
+.profile-picture {
+    width: 300px; /* Zwiększona szerokość zdjęcia */
+    height: 300px; /* Zwiększona wysokość zdjęcia */
+    border-radius: 20px;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-size: 36px; /* Zwiększona czcionka imienia */
+    color: #ffffff;
+}
+
+.profile-form-modal {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background-color: #2F3638;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px; /* Stała szerokość okna */
+}
+
+.manage-friends-modal {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.manage-friends-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background-color: #2F3638;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    max-width: 90%;
+    color: white;
+}
+
+.manage-friends-modal-content .back-button {
+    align-self: flex-start;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.manage-friends-modal-content .back-button .back-icon {
+    width: 24px; /* Zmniejszone szerokości ikony w modalach */
+    height: 24px; /* Zmniejszone wysokości ikony w modalach */
+}
+
+.profile-form .back-button {
+    align-self: flex-start;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.profile-form .back-button .back-icon {
+    width: 24px; /* Zmniejszone szerokości ikony w modalach */
+    height: 24px; /* Zmniejszone wysokości ikony w modalach */
+}
+
+#add-friend-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+#friend-login {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #4A5255;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#add-friend-form button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#add-friend-form button:hover {
+    background-color: #45a049;
+}
+
+#current-friends {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#friends-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+#friends-list li {
+    padding: 10px;
+    border-bottom: 1px solid #7FA6C0;
+    display: flex;
+    justify-content: space-between; /* Dodano, aby przycisk był po prawej stronie */
+}
+
+.delete-friend-button {
+    background-color: #ff4d4d; /* Kolor czerwony */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: auto; /* Ograniczenie szerokości przycisku */
+}
+
+.delete-friend-button:hover {
+    background-color: #cc0000; /* Ciemniejszy czerwony na hover */
+}
+
+.file-input {
+    display: none;
+}
+
+.file-input-label {
+    background-color: #6DC1BC;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+.file-input-label:hover {
+    background-color: #82d4d0;
+}
+
+.file-name {
+    color: white;
+    margin-top: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%; /* Ograniczenie maksymalnej szerokości */
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    width: 35%; /* Zmniejszenie szerokości przycisku */
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%; /* Rozszerzenie przycisku na całą szerokość */
+}
+
+#upload-button {
+    background-color: #4CAF50; /* Zmieniono kolor na bardziej zielony */
+    color: white;
+}
+
+@media only screen and (max-width: 767px) {
+    .profile-container {
+        flex-direction: column; /* Kolumna dla widoku mobilnego */
+        align-items: center; /* Wyśrodkowanie elementów */
+        gap: 0; /* Usunięcie gap */
+    }
+
+    .menu {
+        width: 95%; /* Szerokość menu na 95% szerokości ekranu w widoku mobilnym */
+        margin-top: 20px; /* Podniesienie menu */
+        margin-bottom: 20px; /* Dodanie marginesu dolnego */
+    }
+
+    .profile {
+        margin-top: 150px; /* Dodatkowy margines, aby przesunąć profil poniżej logo */
+        order: -1; /* Umieszczenie profilu przed menu */
+    }
+
+    .profile-picture {
+        width: 250px; /* Zmniejszona szerokość zdjęcia w widoku mobilnym */
+        height: 250px; /* Zmniejszona wysokość zdjęcia w widoku mobilnym */
+    }
+
+    .profile-name {
+        font-size: 30px; /* Zmniejszona czcionka imienia w widoku mobilnym */
+    }
+
+    .logo {
+        width: 100px; /* Zmniejszenie logo w widoku mobilnym */
+        height: 100px; /* Zmniejszenie logo w widoku mobilnym */
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .profile-container {
+        flex-direction: row; /* Układ w wierszu dla widoku stacjonarnego */
+    }
+}

@@ -18,9 +18,8 @@ class FriendRepository
 
     public function addFriend($userId, $friendId)
     {
-        // Sprawdzenie, czy użytkownik już jest znajomym
         if ($this->isFriend($userId, $friendId)) {
-            return false; // Zwraca false, jeśli użytkownik już jest znajomym
+            return false; 
         }
 
         $stmt = $this->pdo->prepare('INSERT INTO friends (user_id, friend_id) VALUES (:user_id, :friend_id)');
@@ -42,7 +41,6 @@ class FriendRepository
 
     public function getFriendsByUserId($userId)
     {
-        // Zwracamy tylko id, login oraz email użytkowników
         $stmt = $this->pdo->prepare('
             SELECT users.id, users.login, users.email 
             FROM users 
@@ -59,4 +57,16 @@ class FriendRepository
         $stmt->execute(['login' => $login]);
         return $stmt->fetchColumn();
     }
+
+    public function deleteFriend($userId, $friendId)
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM friends WHERE user_id = :user_id AND friend_id = :friend_id');
+        $stmt->execute(['user_id' => $userId, 'friend_id' => $friendId]);
+        
+        // Zwracamy szczegółowe logi do konsoli przeglądarki
+        $rowCount = $stmt->rowCount();
+        return $rowCount > 0 ? ['rowCount' => $rowCount, 'log' => "Usunięto $rowCount wierszy dla użytkownika $userId i znajomego $friendId"] : ['rowCount' => 0, 'log' => "Nie udało się usunąć znajomego $friendId dla użytkownika $userId"];
+    }
+    
+    
 }

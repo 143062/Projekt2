@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     friendsBtn.onclick = function() {
-        friendsModal.style.display = 'flex';
         console.log('Otwieranie modala znajomych');
+        friendsModal.style.display = 'flex';
         loadFriends(); // Ładuj znajomych przy otwieraniu modal
     };
 
@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
         friendsModal.style.display = 'none';
         console.log('Zamykanie modala znajomych');
         resetMessage(); // Resetowanie wiadomości przy zamknięciu modala
-        errorMessage.style.display = 'none'; // Dodane: Resetowanie wiadomości o błędzie przy zamknięciu modala
     };
 
     closeProfileFormModal.onclick = function() {
@@ -84,6 +83,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     const listItem = document.createElement('li');
                     listItem.textContent = friendLogin;
+
+                    // Dodaj przycisk "Usuń"
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Usuń';
+                    deleteButton.classList.add('delete-friend-button');
+                    deleteButton.onclick = function() {
+                        removeFriend(friendLogin);
+                    };
+
+                    listItem.appendChild(deleteButton);
                     document.getElementById('friends-list').appendChild(listItem);
                     document.getElementById('friend-login').value = '';
                     message.textContent = 'Znajomy został dodany pomyślnie';
@@ -108,18 +117,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Funkcja, która zamyka okna, gdy klikniesz poza nimi
-    window.onclick = function(event) {
-        if (event.target == friendsModal) {
-            friendsModal.style.display = 'none';
-            resetMessage();
-            errorMessage.style.display = 'none'; // Dodane: Resetowanie wiadomości o błędzie przy zamknięciu modala
-        }
-        if (event.target == document.getElementById('profile-form-modal')) {
-            document.getElementById('profile-form-modal').style.display = 'none';
-        }
-    };
-
+    // Funkcja usuwania znajomego
+    function removeFriend(friendLogin) {
+        console.log(`Próba usunięcia znajomego: ${friendLogin}`);
+        fetch('/remove-friend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ friend_login: friendLogin })
+        })
+        .then(response => {
+            // Wyświetl pełną odpowiedź, zanim spróbujesz ją sparsować jako JSON
+            console.log('Pełna odpowiedź z serwera:', response);
+            return response.text(); // Pobierz odpowiedź jako tekst
+        })
+        .then(text => {
+            console.log('Odpowiedź serwera (pełna treść):', text);
+            try {
+                const data = JSON.parse(text); // Spróbuj sparsować odpowiedź do JSON
+                console.log('Dane z serwera (JSON):', data);
+                if (data.success) {
+                    console.log(`Znajomy ${friendLogin} został usunięty.`);
+                    loadFriends(); // Odśwież listę znajomych
+                } else {
+                    console.error('Błąd podczas usuwania znajomego:', data.message);
+                    console.error(`Log serwera: ${data.log}`);
+                }
+            } catch (error) {
+                console.error('Błąd podczas parsowania JSON:', error);
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas usuwania znajomego:', error);
+        });
+    }
+    
+    
     function loadFriends() {
         console.log('Ładowanie znajomych');
         fetch('/friends')
@@ -131,6 +165,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.forEach(friend => {
                     const listItem = document.createElement('li');
                     listItem.textContent = friend.login;
+    
+                    // Dodaj przycisk "Usuń" do każdego znajomego
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Usuń';
+                    deleteButton.classList.add('delete-friend-button');
+                    deleteButton.onclick = function() {
+                        console.log(`Kliknięto przycisk "Usuń" dla znajomego: ${friend.login}`);
+                        removeFriend(friend.login);
+                    };
+    
+                    listItem.appendChild(deleteButton);
                     friendsList.appendChild(listItem);
                 });
             })
@@ -138,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Błąd podczas ładowania znajomych:', error);
             });
     }
+    
 
     function resetMessage() {
         message.style.display = 'none';
