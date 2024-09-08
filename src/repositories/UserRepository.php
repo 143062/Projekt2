@@ -134,6 +134,27 @@ class UserRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    // Nowa metoda do pobierania użytkownika na podstawie loginu
+    public function getUserByLogin($login)
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE login = :login');
+        $stmt->execute(['login' => $login]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Nowa metoda sprawdzająca, czy użytkownik ma rolę "admin"
+    public function isAdmin($userId)
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT COUNT(*) 
+            FROM users 
+            JOIN roles ON users.role_id = roles.id
+            WHERE users.id = :user_id AND roles.name = :role_name
+        ');
+        $stmt->execute(['user_id' => $userId, 'role_name' => 'admin']);
+        return $stmt->fetchColumn() > 0;
+    }
+
     public function changeUserPassword($userId, $hashedPassword)
     {
         $stmt = $this->pdo->prepare('UPDATE Users SET password = :password WHERE id = :user_id');

@@ -42,8 +42,9 @@ class FriendRepository
 
     public function getFriendsByUserId($userId)
     {
+        // Zwracamy tylko id, login oraz email użytkowników
         $stmt = $this->pdo->prepare('
-            SELECT users.* 
+            SELECT users.id, users.login, users.email 
             FROM users 
             JOIN friends ON users.id = friends.friend_id 
             WHERE friends.user_id = :user_id

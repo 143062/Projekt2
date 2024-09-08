@@ -18,6 +18,7 @@ class FriendController
 
     public function friends()
     {
+        session_start();
         $userId = $_SESSION['user_id'];
         $friends = $this->friendRepository->getFriendsByUserId($userId);
         header('Content-Type: application/json');
@@ -28,23 +29,35 @@ class FriendController
     public function addFriend()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            session_start();
             $userId = $_SESSION['user_id'];
-            $friendLogin = $_POST['friend_login'];
+            $friendLogin = trim($_POST['friend_login']);
+
+            header('Content-Type: application/json');
+
+            if (empty($friendLogin)) {
+                echo json_encode(['success' => false, 'message' => 'Proszę wpisać login znajomego']);
+                exit();
+            }
 
             $friend = $this->userRepository->getUserByLogin($friendLogin);
 
-            header('Content-Type: application/json');
             if ($friend) {
+                if ($this->userRepository->isAdmin($friend['id'])) {
+                    echo json_encode(['success' => false, 'message' => 'Nie możesz dodać admina']);
+                    exit();
+                }
+
                 $friendId = $friend['id'];
                 $result = $this->friendRepository->addFriend($userId, $friendId);
-                
+
                 if ($result) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Znajomy już istnieje na Twojej liście.']);
+                    echo json_encode(['success' => false, 'message' => 'Znajomy już istnieje na Twojej liście']);
                 }
             } else {
-                echo json_encode(['success' => false, 'message' => 'Nie znaleziono użytkownika o podanym loginie.']);
+                echo json_encode(['success' => false, 'message' => 'Nie znaleziono użytkownika']);
             }
             exit();
         }

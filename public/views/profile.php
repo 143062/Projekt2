@@ -31,9 +31,9 @@
             </div>
             <div class="profile">
                 <?php if (isset($_GET['status']) && $_GET['status'] === 'updated'): ?>
-                    <p class="success-message">Zdjęcie profilowe zostało zaktualizowane.</p>
+                    <p class="success-message">Zdjęcie profilowe zostało zaktualizowane</p>
                 <?php elseif (isset($_GET['status']) && $_GET['status'] === 'error'): ?>
-                    <p class="error-message">Wystąpił problem podczas aktualizacji zdjęcia profilowego.</p>
+                    <p class="error-message">Wystąpił problem podczas aktualizacji zdjęcia profilowego</p>
                 <?php endif; ?>
                 
                 <!-- Wyświetlanie zdjęcia profilowego -->
@@ -46,11 +46,12 @@
             <div class="manage-friends-modal-content">
                 <span class="back-button"><img src="/public/img/arrow_back.svg" alt="Back" class="back-icon"></span>
                 <h2>Zarządzaj znajomymi</h2>
-                <form id="add-friend-form">
+                <form id="add-friend-form" novalidate>
                     <label for="friend-login">Login znajomego:</label>
-                    <input type="text" id="friend-login" name="friend-login" required>
+                    <input type="text" id="friend-login" name="friend-login" class="friend-username-input">
                     <button type="submit">Dodaj znajomego</button>
                 </form>
+                <p id="friend-error-message" style="color: red; display: none;"></p>
                 <div id="current-friends">
                     <h3>Aktualni znajomi</h3>
                     <ul id="friends-list"></ul>
