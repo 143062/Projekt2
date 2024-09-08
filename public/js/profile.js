@@ -8,9 +8,11 @@ document.getElementById('file-input').addEventListener('change', function () {
     const file = fileInput.files[0];
 
     if (file) {
-        fileName.textContent = `Wybrany plik: ${file.name}`;
+        fileName.textContent = `Wybrano plik: ${file.name}`;
+        fileName.style.color = 'white'; // Zmiana koloru komunikatu na biały, gdy plik został wybrany
     } else {
-        fileName.textContent = '';
+        fileName.textContent = 'Nie wybrano pliku';
+        fileName.style.color = 'red'; // Kolor czerwony, gdy nie wybrano pliku
     }
 });
 
@@ -23,6 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const friendsBtn = document.getElementById('friends-button');
     const closeFriendsModal = document.querySelector('.manage-friends-modal .back-button');
     const closeProfileFormModal = document.getElementById('close-profile-form-modal');
+    const fileName = document.getElementById('file-name');
+    const friendLoginInput = document.getElementById('friend-login');
     const message = document.createElement('p');
     message.style.display = 'none';
     document.getElementById('add-friend-form').appendChild(message);
@@ -46,52 +50,50 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('file-name').textContent = ''; // Resetuje tekst wybranego pliku
     }
 
-    const errorMessage = document.getElementById('friend-error-message'); 
-
-    function validateFriendLogin() {
-        const friendLogin = document.getElementById('friend-login').value.trim();
-        
-        if (!friendLogin) {
-            showMessage('Proszę wpisać login znajomego', 'red');
-            return false;
-        }
-        resetMessage(); 
-        return true;
+    function resetModalMessage() {
+        fileName.textContent = ''; // Resetuje komunikat o pliku przy zamknięciu modala
     }
 
     friendsBtn.onclick = function() {
-        console.log('Otwieranie modala znajomych');
         friendsModal.style.display = 'flex';
         loadFriends();
     };
 
     closeFriendsModal.onclick = function() {
         friendsModal.style.display = 'none';
-        console.log('Zamykanie modala znajomych');
-        resetMessage();
+        friendLoginInput.value = ''; // Resetowanie pola login znajomego
+        resetMessage(); // Resetuj wiadomości po zamknięciu modala
     };
 
     closeProfileFormModal.onclick = function() {
-        document.getElementById('profile-form-modal').style.display = 'none';
+        profileModal.style.display = 'none';
         resetFileInput(); // Resetuj pole pliku, gdy modal zostaje zamknięty
+        resetModalMessage(); // Resetuj komunikat o pliku, gdy modal zostaje zamknięty
     };
 
     window.onclick = function(event) {
         if (event.target === friendsModal) {
             friendsModal.style.display = 'none';
-            console.log('Kliknięcie poza modal - zamykanie modala znajomych');
-            resetMessage();
+            friendLoginInput.value = ''; // Resetowanie pola login znajomego
+            resetMessage(); // Resetuj wiadomości po zamknięciu modala
         }
         if (event.target === profileModal) {
             profileModal.style.display = 'none';
             resetFileInput(); // Resetuj pole pliku, gdy modal zostaje zamknięty
-            resetMessage();
+            resetModalMessage(); // Resetuj komunikat o pliku, gdy modal zostaje zamknięty
         }
     };
 
     // Funkcja zmieniająca zdjęcie profilowe
     profileForm.addEventListener('submit', function(event) {
         event.preventDefault();
+
+        // Sprawdzenie, czy plik został wybrany
+        if (!fileInput.files.length) {
+            fileName.textContent = 'Nie wybrano pliku'; // Wyświetl informację o braku pliku
+            fileName.style.color = 'red';
+            return;
+        }
 
         const formData = new FormData(profileForm);
         fetch('/update_profile_picture', {
@@ -101,17 +103,18 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Zaktualizuj dynamicznie zdjęcie profilowe bez przeładowywania strony
                 profilePicture.src = data.newProfilePictureUrl + '?' + new Date().getTime(); // Załaduj nowe zdjęcie, aby ominąć cache
                 profileModal.style.display = 'none'; // Zamknij modal
                 resetFileInput(); // Resetuj pole pliku po udanej aktualizacji zdjęcia
             } else {
-                showMessage('Wystąpił problem z aktualizacją zdjęcia', 'red');
+                fileName.textContent = 'Wystąpił problem z aktualizacją zdjęcia';
+                fileName.style.color = 'red';
             }
         })
         .catch(error => {
             console.error('Błąd podczas zmiany zdjęcia profilowego:', error);
-            showMessage('Wystąpił problem z aktualizacją zdjęcia', 'red');
+            fileName.textContent = 'Wystąpił problem z aktualizacją zdjęcia';
+            fileName.style.color = 'red';
         });
     });
 
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const friendLogin = document.getElementById('friend-login').value.trim();
+        const friendLogin = friendLoginInput.value.trim();
         console.log(`Próba dodania znajomego: ${friendLogin}`);
 
         fetch('/add-friend', {
@@ -131,19 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: new URLSearchParams({ friend_login: friendLogin })
         })
-        .then(response => {
-            console.log('Odpowiedź serwera (tekst):');
-            return response.text(); 
-        })
+        .then(response => response.text())
         .then(text => {
-            console.log('Odpowiedź serwera (pełna treść):', text);
             try {
                 const data = JSON.parse(text);
-                console.log('Dane z serwera (JSON):', data);
-                
                 if (data.success) {
                     loadFriends();
-                    document.getElementById('friend-login').value = '';
+                    friendLoginInput.value = '';
                     showMessage('Znajomy został dodany pomyślnie', 'green');
                 } else {
                     showMessage(data.message, 'red');
@@ -168,22 +165,15 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: new URLSearchParams({ friend_login: friendLogin })
         })
-        .then(response => {
-            console.log('Pełna odpowiedź z serwera:', response);
-            return response.text(); 
-        })
+        .then(response => response.text())
         .then(text => {
-            console.log('Odpowiedź serwera (pełna treść):', text);
             try {
                 const data = JSON.parse(text);
-                console.log('Dane z serwera (JSON):', data);
                 if (data.success) {
-                    console.log(`Znajomy ${friendLogin} został usunięty.`);
                     loadFriends();
                     showMessage('Znajomy został pomyślnie usunięty', 'green');
                 } else {
-                    console.error('Błąd podczas usuwania znajomego:', data.message);
-                    console.error(`Log serwera: ${data.log}`);
+                    showMessage('Wystąpił problem z usunięciem znajomego', 'red');
                 }
             } catch (error) {
                 console.error('Błąd podczas parsowania JSON:', error);
@@ -195,11 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadFriends() {
-        console.log('Ładowanie znajomych');
         fetch('/friends')
             .then(response => response.json())
             .then(data => {
-                console.log('Dane znajomych z serwera:', data);
                 const friendsList = document.getElementById('friends-list');
                 friendsList.innerHTML = '';
                 data.forEach(friend => {
@@ -222,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     deleteButton.textContent = 'Usuń';
                     deleteButton.classList.add('delete-friend-button');
                     deleteButton.onclick = function() {
-                        console.log(`Kliknięto przycisk "Usuń" dla znajomego: ${friend.login}`);
                         removeFriend(friend.login);
                     };
 
@@ -234,5 +221,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Błąd podczas ładowania znajomych:', error);
             });
+    }
+
+    function validateFriendLogin() {
+        const friendLogin = friendLoginInput.value.trim();
+        if (!friendLogin) {
+            showMessage('Proszę wpisać login znajomego', 'red');
+            return false;
+        }
+        return true;
     }
 });

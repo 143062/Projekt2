@@ -31,7 +31,7 @@
             </div>
             <div class="profile">
                 <!-- Wyświetlanie zdjęcia profilowego -->
-                <img src="<?php echo htmlspecialchars($user['profile_picture'] ? $user['profile_picture'] : 'public/img/profile/default/default_profile_picture.jpg'); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
+                <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
                 <p class="profile-name"><?php echo htmlspecialchars($user['login']); ?></p>
             </div>
         </div>
