@@ -103,6 +103,12 @@ class UserController
             exit();
         }
 
+        // Blokada dla administratora
+        if ($_SESSION['role_id'] === $this->getAdminRoleId()) {
+            header('Location: /admin_panel');
+            exit();
+        }
+
         $userId = $_SESSION['user_id'];
         $user = $this->userRepository->getUserById($userId);
 
@@ -166,6 +172,12 @@ class UserController
 
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
+            exit();
+        }
+
+        // Blokada dla administratora
+        if ($_SESSION['role_id'] === $this->getAdminRoleId()) {
+            header('Location: /admin_panel');
             exit();
         }
 
