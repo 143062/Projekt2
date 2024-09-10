@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalNoteTitle = document.getElementById('modal-note-title');
     const modalNoteContent = document.getElementById('modal-note-content');
     const editNoteButton = document.getElementById('edit-note');
+    const deleteNoteButton = document.querySelector('.delete-note');  // Nowy element usuwania
     const modalSharedWithContainer = document.getElementById('modal-shared-with');
     const shareNoteModalContainer = document.getElementById('share-note-modal-container');
     const shareNoteSaveButton = document.getElementById('share-note-save');
@@ -261,9 +262,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (isShared) {
                     editNoteButton.style.display = 'none';  // Ukrycie przycisku edycji dla udostępnionych notatek
+                    deleteNoteButton.style.display = 'none';  // Ukrycie przycisku usuwania dla udostępnionych notatek
                     modalSharedWithContainer.innerHTML = '';  // Nie pokazuj zdjęć i loginów dla notatek udostępnionych
                 } else {
                     editNoteButton.style.display = 'inline-block';  // Pokaż przycisk edycji dla własnych notatek
+                    deleteNoteButton.style.display = 'inline-block';  // Pokaż przycisk usuwania dla własnych notatek
 
                     // Pokaż zdjęcia profilowe i loginy znajomych dla naszych notatek
                     modalSharedWithContainer.innerHTML = '';

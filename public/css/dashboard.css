@@ -216,8 +216,8 @@ textarea.note-content {
     display: flex;
     align-items: center;
     margin-right: 10px;
-    flex-wrap: wrap; /* Pozwala na przenoszenie znajomych do nowej linii */
-    gap: 10px; /* Odstęp między elementami */
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .friend {
@@ -227,7 +227,7 @@ textarea.note-content {
     border-radius: 20px;
     padding: 5px 10px;
     margin-right: 10px;
-    margin-bottom: 10px; /* Zapewnienie odstępu między wierszami */
+    margin-bottom: 10px;
 }
 
 .friend-icon {
@@ -248,9 +248,9 @@ textarea.note-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px; /* Stała szerokość */
+    width: 50px;
     height: 50px;
-    min-width: 50px; /* Minimalna szerokość, aby zapobiec spłaszczeniu */
+    min-width: 50px;
     background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
     border: none;
     border-radius: 50%;
@@ -264,7 +264,6 @@ textarea.note-content {
     background: linear-gradient(to bottom, #5985B9 0%, #8DDCC4 100%);
     box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7);
 }
-
 
 .add-friend img {
     width: 30px;
@@ -293,6 +292,34 @@ textarea.note-content {
 }
 
 .save-note img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Nowy styl dla przycisku usuwania */
+.delete-note {
+    background: linear-gradient(135deg, #FF7F7F 10%, #E57373 100%);
+    border: none;
+    border-radius: 50%;
+    width: 70px; /* Zmiana na 70px, aby dopasować do przycisku edycji */
+    height: 70px;
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0px 10px 20px rgba(255, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.delete-note:hover {
+    background: linear-gradient(135deg, #E57373 10%, #FF7F7F 100%);
+    box-shadow: 0px 10px 20px rgba(255, 0, 0, 0.7);
+}
+
+.delete-note img {
     width: 40px;
     height: 40px;
 }
