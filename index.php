@@ -30,6 +30,7 @@ Router::post('register', [UserController::class, 'register']);
 Router::get('add_note', [NoteController::class, 'addNote']);
 Router::post('add_note', [NoteController::class, 'addNote']);
 Router::get('get_note', [NoteController::class, 'editNote']);
+Router::post('delete_note', [NoteController::class, 'deleteNote']);
 Router::get('profile', [UserController::class, 'profile']);
 Router::post('update_profile_picture', [UserController::class, 'updateProfilePicture']);
 Router::get('admin_panel', [AdminController::class, 'adminPanel']);

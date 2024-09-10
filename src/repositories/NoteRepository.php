@@ -86,7 +86,6 @@ class NoteRepository
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
 
     public function getSharedUsersByNoteId($noteId)
     {
@@ -112,5 +111,21 @@ class NoteRepository
         $stmt->execute(['note_id' => $noteId, 'user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
+    public function deleteNoteById($noteId, $userId)
+    {
+        try {
+            // Usuwanie notatki, tylko jeśli należy do użytkownika
+            $stmt = $this->pdo->prepare('DELETE FROM notes WHERE id = :id AND user_id = :user_id');
+            $stmt->execute(['id' => $noteId, 'user_id' => $userId]);
+
+            // Usuń także powiązania w tabeli shared_notes, jeśli istnieją
+            $this->clearSharedNotes($noteId);
+
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
 }

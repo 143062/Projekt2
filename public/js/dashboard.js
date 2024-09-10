@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalNoteTitle = document.getElementById('modal-note-title');
     const modalNoteContent = document.getElementById('modal-note-content');
     const editNoteButton = document.getElementById('edit-note');
-    const deleteNoteButton = document.querySelector('.delete-note');  // Nowy element usuwania
+    const deleteNoteButton = document.getElementById('delete-note');  // Pobierz właściwy element usuwania
     const modalSharedWithContainer = document.getElementById('modal-shared-with');
     const shareNoteModalContainer = document.getElementById('share-note-modal-container');
     const shareNoteSaveButton = document.getElementById('share-note-save');
@@ -294,6 +294,43 @@ document.addEventListener('DOMContentLoaded', function () {
             noteModalContainer.style.display = 'none';
         }
     });
+
+    // Usuwanie notatki
+    deleteNoteButton.addEventListener('click', function () {
+        const noteId = modalNoteTitle.dataset.id;
+
+        if (!noteId) {
+            console.error('Brak ID notatki do usunięcia');
+            return;
+        }
+
+        fetch('/delete_note', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: noteId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Notatka została pomyślnie usunięta');
+                noteModalContainer.style.display = 'none';
+
+                // Usunięcie notatki z interfejsu
+                const noteCard = document.querySelector(`.note-card[data-id="${noteId}"]`);
+                if (noteCard) {
+                    noteCard.remove();
+                }
+            } else {
+                console.error('Błąd podczas usuwania notatki:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas komunikacji z serwerem:', error);
+        });
+    });
+        
 
     // Edytowanie notatki
     editNoteButton.addEventListener('click', function () {

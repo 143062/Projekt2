@@ -72,4 +72,26 @@ class NoteController
             exit();
         }
     }
+
+    public function deleteNote()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $noteId = $data['id'] ?? null;
+            $userId = $_SESSION['user_id'];
+
+            if ($noteId) {
+                $result = $this->noteRepository->deleteNoteById($noteId, $userId);
+
+                if ($result) {
+                    echo json_encode(['success' => true, 'message' => 'Notatka została usunięta']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Błąd podczas usuwania notatki']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Nie znaleziono ID notatki']);
+            }
+            exit();
+        }
+    }
 }
