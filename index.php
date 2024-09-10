@@ -19,8 +19,22 @@ use App\Controllers\AdminController;
 use App\Controllers\LogoutController;
 use App\Controllers\FriendController;
 
+
 $path = trim($_SERVER['REQUEST_URI'], '/');
 $path = parse_url($path, PHP_URL_PATH);
+$isLoggedIn = isset($_SESSION['user_id']);
+$userRole = $_SESSION['role'] ?? null;
+if ($path === '' || $path === 'index' || $path === 'index.php') {
+    if ($isLoggedIn) {
+        if ($userRole === 'admin') {
+            $path = 'admin_panel';
+        } else {
+            $path = 'dashboard';
+        }
+    } else {
+        $path = 'login';
+    }
+}
 
 Router::get('', [UserController::class, 'login']);
 Router::get('login', [UserController::class, 'login']);
@@ -45,5 +59,9 @@ Router::get('friends', [FriendController::class, 'friends']);
 Router::post('add-friend', [FriendController::class, 'addFriend']);
 Router::post('remove-friend', [FriendController::class, 'deleteFriend']);
 Router::get('logout', [LogoutController::class, 'logout']);
+
+
+Router::get('import_database', fn() => require_once __DIR__ . '/Database/import_database.php');
+
 
 Router::run($path);
