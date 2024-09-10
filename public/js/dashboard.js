@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let friends = [];
     let editingNoteIndex = -1;
 
+    const MOBILE_MAX_LINES_TITLE = 2;
+    const MOBILE_MAX_LINES_CONTENT = 5;
+    const DESKTOP_MAX_LINES_TITLE = 2;
+    const DESKTOP_MAX_LINES_CONTENT = 8;
+
     // Eventy przełączania widoczności notatek
     toggleButtons.forEach(button => {
         button.addEventListener('click', function () {
@@ -110,11 +115,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (noNotesMessage) {
                             noNotesMessage.style.display = 'none';
                         }
+
+                        truncateText(noteCard);  // Dynamiczne ucinanie tekstu
+
                     } else {  // Edytowana notatka
                         const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
                         if (noteCard) {
                             noteCard.querySelector('h3').textContent = title;
                             noteCard.querySelector('p').textContent = content;
+                            truncateText(noteCard);  // Dynamiczne ucinanie tekstu
                         } else {
                             console.error(`[dashboard.js] Nie znaleziono notatki o indexie: ${editingNoteIndex}`);
                         }
@@ -145,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Dodawanie znajomych do udostępniania notatki
+    // Dodawanie znajomych do udostępniania notatki - stylizowane elementy
     addFriendButton.addEventListener('click', function () {
         fetch('/friends')
             .then(response => response.json())
@@ -153,14 +162,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 friendsListContainer.innerHTML = '';
 
                 data.forEach(friend => {
-                    const isChecked = friends.some(f => f.id === friend.id) ? 'checked' : '';
+                    const isSelected = friends.some(f => f.id === friend.id);
                     const friendItem = document.createElement('div');
-                    friendItem.className = 'friend-item';
+                    friendItem.className = `friend-item ${isSelected ? 'selected' : ''}`;
                     friendItem.innerHTML = `
                         <img src="${friend.profile_picture}" alt="${friend.login}">
                         <span>${friend.login}</span>
-                        <input type="checkbox" class="friend-checkbox" data-id="${friend.id}" ${isChecked}>
                     `;
+                    friendItem.addEventListener('click', function () {
+                        toggleFriendSelection(friendItem, friend);
+                    });
                     friendsListContainer.appendChild(friendItem);
                 });
 
@@ -171,20 +182,20 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
+    // Przełączanie wyboru znajomego
+    function toggleFriendSelection(friendItem, friend) {
+        const isSelected = friendItem.classList.contains('selected');
+        if (isSelected) {
+            friendItem.classList.remove('selected');
+            friends = friends.filter(f => f.id !== friend.id);
+        } else {
+            friendItem.classList.add('selected');
+            friends.push(friend);
+        }
+    }
+
     // Zapisanie udostępnienia notatki
     shareNoteSaveButton.addEventListener('click', function () {
-        const selectedFriends = document.querySelectorAll('.friend-checkbox:checked');
-
-        friends = Array.from(selectedFriends).map(checkbox => {
-            const id = checkbox.getAttribute('data-id');
-            const friendItem = checkbox.closest('.friend-item');
-            return {
-                id: id,
-                login: friendItem.querySelector('span').textContent,
-                profile_picture: friendItem.querySelector('img').src
-            };
-        });
-
         updateSharedWith();
         shareNoteModalContainer.style.display = 'none';
     });
@@ -210,6 +221,14 @@ document.addEventListener('DOMContentLoaded', function () {
             sharedWithContainer.appendChild(friendDiv);
         });
 
+        // Dynamiczne ustawianie marginesu dolnego dla .share-section
+        const shareSection = document.querySelector('.share-section');
+        if (friends.length === 0) {
+            shareSection.style.marginBottom = '20px';
+        } else {
+            shareSection.style.marginBottom = '0px';
+        }
+
         // Usuwanie znajomych z listy udostępnionych
         document.querySelectorAll('.remove-icon').forEach(icon => {
             icon.addEventListener('click', function () {
@@ -229,17 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
         editingNoteIndex = index;
 
         fetch(`/get_note?id=${noteId}`)
-            .then(response => {
-                return response.text().then(text => {
-                    console.log("[dashboard.js] Otrzymano odpowiedź tekstową podczas ładowania notatki:", text);
-                    try {
-                        return JSON.parse(text);
-                    } catch (error) {
-                        console.error("[dashboard.js] Błąd parsowania odpowiedzi JSON", error);
-                        throw error;
-                    }
-                });
-            })
+            .then(response => response.json())
             .then(data => {
                 console.log("[dashboard.js] Ładowanie notatki do edycji:", data);
                 modalNoteTitle.textContent = data.note.title;
@@ -252,8 +261,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (isShared) {
                     editNoteButton.style.display = 'none';  // Ukrycie przycisku edycji dla udostępnionych notatek
+                    modalSharedWithContainer.innerHTML = '';  // Nie pokazuj zdjęć i loginów dla notatek udostępnionych
                 } else {
                     editNoteButton.style.display = 'inline-block';  // Pokaż przycisk edycji dla własnych notatek
+
+                    // Pokaż zdjęcia profilowe i loginy znajomych dla naszych notatek
+                    modalSharedWithContainer.innerHTML = '';
+                    friends.forEach(friend => {
+                        const friendDiv = document.createElement('div');
+                        friendDiv.className = 'friend';
+                        friendDiv.innerHTML = `
+                            <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
+                            <span>${friend.login}</span>
+                        `;
+                        modalSharedWithContainer.appendChild(friendDiv);
+                    });
                 }
 
                 noteModalContainer.style.display = 'flex';
@@ -299,4 +321,52 @@ document.addEventListener('DOMContentLoaded', function () {
             showNoteModal(noteCard, index);
         });
     });
+
+    // Funkcja do dynamicznego ucinania tekstu w notatkach
+    function truncateText(card) {
+        const content = card.querySelector('p');
+        const title = card.querySelector('h3');
+        const isMobileView = window.innerWidth <= 767;
+        const maxLinesTitle = isMobileView ? MOBILE_MAX_LINES_TITLE : DESKTOP_MAX_LINES_TITLE;
+        const maxLinesContent = isMobileView ? MOBILE_MAX_LINES_CONTENT : DESKTOP_MAX_LINES_CONTENT;
+
+        // Zmierz ile linii zajmuje tytuł
+        const titleLineHeight = parseInt(window.getComputedStyle(title).lineHeight);
+        const titleHeight = title.clientHeight;
+        const titleLines = Math.ceil(titleHeight / titleLineHeight);
+
+        // Przelicz dostępne linie na zawartość w zależności od ilości linii tytułu
+        let contentLinesAvailable = maxLinesContent - (titleLines > maxLinesTitle ? maxLinesTitle : titleLines);
+
+        // Oblicz linie zawartości i przytnij jeśli przekracza limit
+        const contentLineHeight = parseInt(window.getComputedStyle(content).lineHeight);
+        const contentHeight = content.clientHeight;
+        const contentLines = Math.ceil(content.scrollHeight / contentLineHeight);
+
+        // Skróć treść jeśli przekracza maksymalną liczbę linii
+        if (contentLines > contentLinesAvailable) {
+            let truncatedText = content.innerText;
+            while (content.scrollHeight > (contentLinesAvailable * contentLineHeight) && truncatedText.length > 0) {
+                truncatedText = truncatedText.slice(0, -1);
+                content.innerText = truncatedText + '...';
+            }
+        }
+    }
+
+    // Aplikowanie dynamicznego ucinania tekstu do wszystkich notatek
+    function applyTruncateToAllNotes() {
+        document.querySelectorAll('.note-card').forEach(card => {
+            truncateText(card);
+        });
+    }
+
+    // Debouncing dla resize, aby unikać zbyt częstych operacji
+    let resizeTimeout;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(applyTruncateToAllNotes, 200);
+    });
+
+    // Zastosowanie dynamicznego ucinania po załadowaniu strony
+    applyTruncateToAllNotes();
 });
