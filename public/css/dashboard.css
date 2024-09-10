@@ -215,6 +215,8 @@ textarea.note-content {
     display: flex;
     align-items: center;
     margin-right: 10px;
+    flex-wrap: wrap; /* Pozwala na przenoszenie znajomych do nowej linii */
+    gap: 10px; /* Odstęp między elementami */
 }
 
 .friend {
@@ -224,6 +226,7 @@ textarea.note-content {
     border-radius: 20px;
     padding: 5px 10px;
     margin-right: 10px;
+    margin-bottom: 10px; /* Zapewnienie odstępu między wierszami */
 }
 
 .friend-icon {
@@ -244,8 +247,9 @@ textarea.note-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px;
+    width: 50px; /* Stała szerokość */
     height: 50px;
+    min-width: 50px; /* Minimalna szerokość, aby zapobiec spłaszczeniu */
     background: linear-gradient(to bottom, #8DDCC4 0%, #5985B9 100%);
     border: none;
     border-radius: 50%;
@@ -259,6 +263,7 @@ textarea.note-content {
     background: linear-gradient(to bottom, #5985B9 0%, #8DDCC4 100%);
     box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7);
 }
+
 
 .add-friend img {
     width: 30px;
@@ -353,8 +358,8 @@ p#modal-note-content.note-content, textarea#note-content.note-content {
     background: #2F3638;
     padding: 20px;
     border-radius: 10px;
-    width: 50%;  /* Zmniejszona szerokość */
-    max-width: 600px;  /* Maksymalna szerokość */
+    width: 50%;
+    max-width: 600px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -412,18 +417,17 @@ p#modal-note-content.note-content, textarea#note-content.note-content {
     border-radius: 30px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: auto; /* Zmiana szerokości na automatyczną */
-    max-width: 200px; /* Maksymalna szerokość przycisku */
+    width: auto;
+    max-width: 200px;
     text-align: center;
     font-size: 18px;
     box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
-    margin: 0 auto; /* Wyśrodkowanie przycisku */
+    margin: 0 auto;
 }
 
 .share-note-save:hover {
     background: linear-gradient(180deg, #83CDCE 0%, #7FA6C0 100%);
 }
-
 
 /* Dostosowanie dla widoku mobilnego */
 @media only screen and (max-width: 767px) {
@@ -473,6 +477,6 @@ p#modal-note-content.note-content, textarea#note-content.note-content {
     }
 
     .share-note-modal {
-        width: 85%; /* Zmniejszenie szerokości na urządzeniach mobilnych */
+        width: 85%;
     }
 }
