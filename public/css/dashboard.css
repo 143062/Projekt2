@@ -111,9 +111,9 @@
     position: fixed;
     bottom: 50px;
     left: 50px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%);
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(to bottom, #72edf2 0%, #5151e5 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -122,12 +122,16 @@
     color: white;
     cursor: pointer;
     border: none;
-    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.5);
+    box-shadow: 0px 8px 16px rgba(72, 144, 255, 0.3),
+                0px 12px 25px rgba(72, 144, 255, 0.5); 
     transition: all 0.3s ease;
 }
 
 .add-note-button:hover {
-    box-shadow: 0px 10px 20px rgba(72, 187, 255, 0.7);
+    background: linear-gradient(to top, #5151e5 0%, #72edf2 100%);
+    box-shadow: 0px 10px 20px rgba(72, 144, 255, 0.4),
+                0px 20px 35px rgba(72, 144, 255, 0.9); 
+    transform: scale(1.1); 
 }
 
 .add-note-button img {
@@ -220,14 +224,16 @@ textarea.note-content {
     gap: 10px;
 }
 
-.friend {
+.friend, .friend-blur {
     display: flex;
     align-items: center;
+    position: relative;
     background-color: #4C5F5D;
     border-radius: 20px;
     padding: 5px 10px;
     margin-right: 10px;
     margin-bottom: 10px;
+    overflow: hidden;
 }
 
 .friend-icon {
@@ -235,14 +241,45 @@ textarea.note-content {
     height: 40px;
     border-radius: 50%;
     margin-right: 5px;
+    z-index: 1;
+}
+
+.friend-blur {
+    position: relative;
+}
+
+.friend-blur .remove-icon {
+    display: none;
+}
+
+.friend-blur span {
+    z-index: 1;
+}
+
+.friend-blur:hover .remove-icon {
+    display: flex;
+}
+
+.friend-blur:hover .friend-icon,
+.friend-blur:hover span {
+    filter: blur(5px);
 }
 
 .remove-icon {
-    width: 25px;
-    height: 25px;
-    margin-left: 5px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
     cursor: pointer;
+    z-index: 2;
+    display: none;
+    color: white;
+    font-size: 1.5rem;
+    border: none;
 }
+
 
 .add-friend {
     display: flex;
@@ -296,27 +333,26 @@ textarea.note-content {
     height: 40px;
 }
 
-/* Nowy styl dla przycisku usuwania */
+/* Styl dla przycisku usuwania */
 .delete-note {
-    background: linear-gradient(135deg, #FF7F7F 10%, #E57373 100%);
+    background: linear-gradient(to bottom, #FF6B6B 0%, #C0392B 100%);
     border: none;
     border-radius: 50%;
-    width: 70px; /* Zmiana na 70px, aby dopasować do przycisku edycji */
-    height: 70px;
-    position: absolute;
-    bottom: 10px;
-    left: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 70px;
+    height: 70px;
     cursor: pointer;
-    box-shadow: 0px 10px 20px rgba(255, 0, 0, 0.5);
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
     transition: all 0.3s ease;
 }
 
 .delete-note:hover {
-    background: linear-gradient(135deg, #E57373 10%, #FF7F7F 100%);
-    box-shadow: 0px 10px 20px rgba(255, 0, 0, 0.7);
+    background: linear-gradient(to bottom, #C0392B 0%, #FF6B6B 100%);
+    box-shadow: 0px 10px 20px rgba(255, 107, 107, 0.7);
 }
 
 .delete-note img {
@@ -433,8 +469,16 @@ p#modal-note-content.note-content, textarea#note-content.note-content {
     color: white;
 }
 
+/* Zaznaczony znajomy */
 .friend-item.selected {
     background-color: #6DC1BC;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover dla zaznaczonego znajomego */
+.friend-item.selected:hover {
+    background-color: #4FA096;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .share-note-save {

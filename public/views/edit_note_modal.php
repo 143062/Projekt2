@@ -4,7 +4,7 @@
         <div id="modal-shared-with" class="shared-with"></div>
         <p id="modal-note-content" class="note-content"></p>  
         <button id="delete-note" class="delete-note">
-            <img src="/public/img/minus.svg" alt="Usuń">
+            <img src="/public/img/delete.svg" alt="Usuń">
         </button>       
         <button id="edit-note" class="save-note">
             <img src="/public/img/edit.svg" alt="Edytuj">

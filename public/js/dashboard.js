@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalNoteTitle = document.getElementById('modal-note-title');
     const modalNoteContent = document.getElementById('modal-note-content');
     const editNoteButton = document.getElementById('edit-note');
-    const deleteNoteButton = document.getElementById('delete-note');  // Pobierz właściwy element usuwania
+    const deleteNoteButton = document.getElementById('delete-note');
     const modalSharedWithContainer = document.getElementById('modal-shared-with');
     const shareNoteModalContainer = document.getElementById('share-note-modal-container');
     const shareNoteSaveButton = document.getElementById('share-note-save');
@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', function () {
             shared_with: friends.map(friend => friend.id)
         };
 
-        const noteId = modalNoteTitle.dataset.id;  // Pobieramy ID notatki
+        const noteId = modalNoteTitle.dataset.id;
         if (noteId) {
-            noteData.id = noteId;  // Jeśli ID istnieje, przypisujemy je
+            noteData.id = noteId;
         }
 
         console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(noteData)
         })
-        .then(response => response.text())  // Pobieramy odpowiedź jako tekst, aby zobaczyć surową odpowiedź
+        .then(response => response.text())
         .then(text => {
             console.log("[dashboard.js] Surowa odpowiedź z serwera:", text);
 
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const noteCard = document.createElement('div');
                         noteCard.className = 'note-card';
                         noteCard.setAttribute('data-index', noteIndex);
-                        noteCard.setAttribute('data-id', data.id);  // Nowo wygenerowane ID
+                        noteCard.setAttribute('data-id', data.id);
 
                         noteCard.innerHTML = `
                             <h3>${title}</h3>
@@ -117,14 +117,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             noNotesMessage.style.display = 'none';
                         }
 
-                        truncateText(noteCard);  // Dynamiczne ucinanie tekstu
+                        truncateText(noteCard);
 
                     } else {  // Edytowana notatka
                         const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
                         if (noteCard) {
                             noteCard.querySelector('h3').textContent = title;
                             noteCard.querySelector('p').textContent = content;
-                            truncateText(noteCard);  // Dynamiczne ucinanie tekstu
+                            truncateText(noteCard);
                         } else {
                             console.error(`[dashboard.js] Nie znaleziono notatki o indexie: ${editingNoteIndex}`);
                         }
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Dodawanie znajomych do udostępniania notatki - stylizowane elementy
+    // Dodawanie znajomych do udostępniania notatki
     addFriendButton.addEventListener('click', function () {
         fetch('/friends')
             .then(response => response.json())
@@ -208,12 +208,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Aktualizacja sekcji "Udostępniono dla"
+    // TA SEKCJA W RZECZYWISTOSCI ODPOWIADA ZA TEN PRZYCISK
     function updateSharedWith() {
         sharedWithContainer.innerHTML = '';
         friends.forEach(friend => {
             const friendDiv = document.createElement('div');
-            friendDiv.className = 'friend';
+            friendDiv.className = 'friend-blur';
             friendDiv.innerHTML = `
                 <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
                 <span>${friend.login}</span>
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             sharedWithContainer.appendChild(friendDiv);
         });
-
+    
         // Dynamiczne ustawianie marginesu dolnego dla .share-section
         const shareSection = document.querySelector('.share-section');
         if (friends.length === 0) {
@@ -229,53 +229,56 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             shareSection.style.marginBottom = '0px';
         }
-
+    
         // Usuwanie znajomych z listy udostępnionych
         document.querySelectorAll('.remove-icon').forEach(icon => {
             icon.addEventListener('click', function () {
                 const id = this.getAttribute('data-id');
                 friends = friends.filter(friend => friend.id !== id);
-                updateSharedWith();
+                updateSharedWith(); // Ponowne wyświetlenie po usunięciu
             });
         });
     }
+    
+    
+    
 
     // Wyświetlenie modala notatki
     function showNoteModal(noteCard, index) {
         const noteId = noteCard.getAttribute('data-id');
-        const isShared = noteCard.getAttribute('data-shared') === 'true';  // Sprawdzenie, czy notatka jest udostępniona
+        const isShared = noteCard.getAttribute('data-shared') === 'true';
 
-        console.log(`[dashboard.js] Ustawiam editingNoteIndex na: ${index}`);
         editingNoteIndex = index;
 
         fetch(`/get_note?id=${noteId}`)
             .then(response => response.json())
             .then(data => {
-                console.log("[dashboard.js] Ładowanie notatki do edycji:", data);
                 modalNoteTitle.textContent = data.note.title;
-                modalNoteTitle.dataset.id = noteId;  // Ustawienie ID notatki
+                modalNoteTitle.dataset.id = noteId;
                 modalNoteContent.textContent = data.note.content;
 
-                // Resetowanie listy znajomych
                 friends = data.sharedUsers || [];
                 updateSharedWith();
 
                 if (isShared) {
-                    editNoteButton.style.display = 'none';  // Ukrycie przycisku edycji dla udostępnionych notatek
-                    deleteNoteButton.style.display = 'none';  // Ukrycie przycisku usuwania dla udostępnionych notatek
-                    modalSharedWithContainer.innerHTML = '';  // Nie pokazuj zdjęć i loginów dla notatek udostępnionych
+                    // Tryb podglądu - brak bluru i brak przycisków edycji
+                    editNoteButton.style.display = 'none';
+                    deleteNoteButton.style.display = 'none';
+                    modalSharedWithContainer.innerHTML = '';        
                 } else {
-                    editNoteButton.style.display = 'inline-block';  // Pokaż przycisk edycji dla własnych notatek
-                    deleteNoteButton.style.display = 'inline-block';  // Pokaż przycisk usuwania dla własnych notatek
+                    // Tryb edycji - blur i przyciski edycji
+                    editNoteButton.style.display = 'inline-block';
+                    deleteNoteButton.style.display = 'inline-block';
 
-                    // Pokaż zdjęcia profilowe i loginy znajomych dla naszych notatek
                     modalSharedWithContainer.innerHTML = '';
+
                     friends.forEach(friend => {
                         const friendDiv = document.createElement('div');
-                        friendDiv.className = 'friend';
+                        friendDiv.className = 'friend'; 
                         friendDiv.innerHTML = `
                             <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
                             <span>${friend.login}</span>
+
                         `;
                         modalSharedWithContainer.appendChild(friendDiv);
                     });
@@ -314,10 +317,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Notatka została pomyślnie usunięta');
                 noteModalContainer.style.display = 'none';
 
-                // Usunięcie notatki z interfejsu
                 const noteCard = document.querySelector(`.note-card[data-id="${noteId}"]`);
                 if (noteCard) {
                     noteCard.remove();
@@ -330,7 +331,6 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Błąd podczas komunikacji z serwerem:', error);
         });
     });
-        
 
     // Edytowanie notatki
     editNoteButton.addEventListener('click', function () {
@@ -370,20 +370,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const maxLinesTitle = isMobileView ? MOBILE_MAX_LINES_TITLE : DESKTOP_MAX_LINES_TITLE;
         const maxLinesContent = isMobileView ? MOBILE_MAX_LINES_CONTENT : DESKTOP_MAX_LINES_CONTENT;
 
-        // Zmierz ile linii zajmuje tytuł
         const titleLineHeight = parseInt(window.getComputedStyle(title).lineHeight);
         const titleHeight = title.clientHeight;
         const titleLines = Math.ceil(titleHeight / titleLineHeight);
 
-        // Przelicz dostępne linie na zawartość w zależności od ilości linii tytułu
         let contentLinesAvailable = maxLinesContent - (titleLines > maxLinesTitle ? maxLinesTitle : titleLines);
 
-        // Oblicz linie zawartości i przytnij jeśli przekracza limit
         const contentLineHeight = parseInt(window.getComputedStyle(content).lineHeight);
         const contentHeight = content.clientHeight;
         const contentLines = Math.ceil(content.scrollHeight / contentLineHeight);
 
-        // Skróć treść jeśli przekracza maksymalną liczbę linii
         if (contentLines > contentLinesAvailable) {
             let truncatedText = content.innerText;
             while (content.scrollHeight > (contentLinesAvailable * contentLineHeight) && truncatedText.length > 0) {
@@ -400,13 +396,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Debouncing dla resize, aby unikać zbyt częstych operacji
     let resizeTimeout;
     window.addEventListener('resize', function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(applyTruncateToAllNotes, 200);
     });
 
-    // Zastosowanie dynamicznego ucinania po załadowaniu strony
     applyTruncateToAllNotes();
 });
