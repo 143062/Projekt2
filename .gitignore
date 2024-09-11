@@ -1,4 +1,3 @@
 *.zip
-/database/dumps/
-/database/imports/
 /old
+/database/imports/
