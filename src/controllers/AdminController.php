@@ -49,10 +49,7 @@ class AdminController
             exit();
         }
 
-        // Pobranie listy użytkowników
         $users = $this->userRepository->getAllUsersWithRoles();
-
-        // Zwrócenie listy użytkowników jako JSON
         header('Content-Type: application/json');
         echo json_encode($users);
     }
@@ -83,27 +80,27 @@ class AdminController
     public function addUser()
     {
         session_start();
-    
+
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['role_id'])) {
             header('Location: /login');
             exit();
         }
-    
+
         $adminRoleId = $this->getAdminRoleId();
-    
+
         if ($_SESSION['role_id'] !== $adminRoleId) {
             echo json_encode(['status' => 'error', 'message' => 'Brak dostępu.']);
             exit();
         }
-    
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = $_POST['username'];
             $email = $_POST['email'];
             $password = $_POST['password'];
             $role = $_POST['role'];
-    
+
             $result = $this->userRepository->addUser($email, $username, $password, $role);
-    
+
             if ($result) {
                 echo json_encode(['status' => 'success']);
             } else {
@@ -111,7 +108,6 @@ class AdminController
             }
         }
     }
-    
 
     public function sqlDump()
     {
@@ -193,6 +189,108 @@ class AdminController
                 'message' => 'Nie wybrano pliku lub wystąpił błąd podczas przesyłania.'
             ]);
         }
+    }
+
+    public function runTests()
+    {
+        // Ścieżka do PHPUnit
+        $phpunit = '/usr/local/bin/phpunit';
+    
+        // Ścieżka do folderu z testami (zmieniona dla struktury projektu)
+        $testDirectory = __DIR__ . '/../../tests';
+    
+        // Przełącznik dla bardziej szczegółowych logów PHPUnit
+        $verbose = '-v';
+    
+        // Tablica z nazwami repozytoriów i odpowiadającymi im plikami testów
+        $testFiles = [
+            'UserRepository' => '/UserRepositoryTest.php',
+            'NoteRepository' => '/NoteRepositoryTest.php',
+            'FriendRepository' => '/FriendRepositoryTest.php'
+        ];
+    
+        // Inicjalizacja zmiennych do przechowywania sumarycznych wyników testów
+        $totalTests = 0;
+        $totalAssertions = 0;
+        $totalFailures = 0;
+        $totalErrors = 0;
+    
+        // Zbieranie wyników
+        $results = [];
+    
+        foreach ($testFiles as $testName => $testFile) {
+            // Ścieżka do pliku testów
+            $testFilePath = $testDirectory . $testFile;
+    
+            // Uruchom PHPUnit dla każdego pliku testów z wyłączeniem cache wyników
+            $output = [];
+            $return_var = 0;
+            exec("$phpunit --no-configuration --testdox --do-not-cache-result $verbose $testFilePath 2>&1", $output, $return_var);
+    
+            // Zbieranie statystyk z wyniku testu
+            $outputString = implode("\n", $output);
+            preg_match('/OK \((\d+) tests?, (\d+) assertions?\)/', $outputString, $matches);
+    
+            if ($matches) {
+                $tests = (int) $matches[1];
+                $assertions = (int) $matches[2];
+                $failures = 0;
+            } else {
+                preg_match('/FAILURES!\nTests: (\d+), Assertions: (\d+), Failures: (\d+), Errors: (\d+)/', $outputString, $failMatch);
+                if ($failMatch) {
+                    $tests = (int) $failMatch[1];
+                    $assertions = (int) $failMatch[2];
+                    $failures = (int) $failMatch[3] + (int) $failMatch[4];
+                } else {
+                    $tests = 0;
+                    $assertions = 0;
+                    $failures = 0;
+                }
+            }
+    
+            // Aktualizacja sumarycznych wyników testów
+            $totalTests += $tests;
+            $totalAssertions += $assertions;
+            $totalFailures += $failures;
+    
+            // Dodanie wyników dla danego repozytorium do tablicy $results
+            $results[] = [
+                'repository' => $testName,
+                'tests' => $tests,
+                'assertions' => $assertions,
+                'failures' => $failures
+            ];
+        }
+    
+        // Wyświetlenie wyników testów jako JSON
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'completed',
+            'totalTests' => $totalTests,
+            'totalAssertions' => $totalAssertions,
+            'totalFailures' => $totalFailures,
+            'results' => $results
+        ]);
+    }
+    
+    public function runTestsRaw()
+    {
+        session_start();
+
+        // Sprawdzenie, czy użytkownik ma uprawnienia administratora
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role_id'])) {
+            header('Location: /login');
+            exit();
+        }
+
+        $adminRoleId = $this->getAdminRoleId();
+
+        if ($_SESSION['role_id'] !== $adminRoleId) {
+            echo "Nie masz uprawnień do tej strony.";
+            exit();
+        }
+
+        include 'tests/run_tests_raw.php';
     }
 
     private function getAdminRoleId()

@@ -19,7 +19,6 @@ use App\Controllers\AdminController;
 use App\Controllers\LogoutController;
 use App\Controllers\FriendController;
 
-
 $path = trim($_SERVER['REQUEST_URI'], '/');
 $path = parse_url($path, PHP_URL_PATH);
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -54,14 +53,14 @@ Router::post('admin/reset_password', [AdminController::class, 'resetPassword']);
 Router::get('admin/get_users', [AdminController::class, 'getUsers']);
 Router::post('admin/sql_dump', [AdminController::class, 'sqlDump']);
 Router::post('admin/sql_import', [AdminController::class, 'sqlImport']);
+Router::post('admin/run_tests', [AdminController::class, 'runTests']);
+Router::get('run_tests_raw', [AdminController::class, 'runTestsRaw']);
 Router::get('dashboard', [UserController::class, 'dashboard']);
 Router::get('friends', [FriendController::class, 'friends']);
 Router::post('add-friend', [FriendController::class, 'addFriend']);
 Router::post('remove-friend', [FriendController::class, 'deleteFriend']);
 Router::get('logout', [LogoutController::class, 'logout']);
 
-
 Router::get('import_database', fn() => require_once __DIR__ . '/Database/import_database.php');
-
 
 Router::run($path);

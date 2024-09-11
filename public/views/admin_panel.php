@@ -106,6 +106,13 @@
                     <button type="submit" class="sql-import-button">Importuj SQL</button>
                 </form>
             </div>
+
+            <!-- Nowa sekcja testów jednostkowych -->
+            <div class="test-unit-container">
+                <h2>Testy Jednostkowe</h2>
+                <button id="run-tests-button" class="run-tests-button">Uruchom</button>
+                <pre id="test-results" class="test-results"></pre> <!-- Miejsce na wyniki testów -->
+            </div>
         </div>
     </div>
 

@@ -18,15 +18,23 @@ class FriendRepository
 
     public function addFriend($userId, $friendId)
     {
+        // Sprawdzenie, czy dane są poprawne (czy nie są puste lub null)
+        if (empty($userId) || empty($friendId)) {
+            return false;
+        }
+    
+        // Sprawdzenie, czy użytkownicy są już znajomymi
         if ($this->isFriend($userId, $friendId)) {
             return false; 
         }
-
+    
+        // Dodanie znajomego do bazy danych
         $stmt = $this->pdo->prepare('INSERT INTO friends (user_id, friend_id) VALUES (:user_id, :friend_id)');
         $stmt->execute(['user_id' => $userId, 'friend_id' => $friendId]);
-
+    
         return true;
     }
+    
 
     public function isFriend($userId, $friendId)
     {

@@ -15,15 +15,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const roleSelect = document.getElementById('role');
+    const runTestsButton = document.getElementById('run-tests-button');
+    const testResults = document.getElementById('test-results');
+
+    // Dodaj animację ładowania
+    const loader = document.createElement('div');
+    loader.classList.add('loader');
+    testResults.before(loader); // Dodaj loader przed wynikami testów
 
     // Funkcja logująca dane do konsoli z oznaczeniem pliku
     function logToConsole(label, data) {
         console.log(`[admin_panel.js] ${label}:`, data);
     }
 
+    // Funkcja do przewijania strony do określonego elementu
+    function scrollToElement(element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+
     // Funkcja do wyświetlania statusu importu
     function showImportStatus(message, isSuccess) {
-        console.log("Wywołano showImportStatus");
+        logToConsole('Wywołano showImportStatus', message);
         importStatus.style.display = 'block';
         importStatus.textContent = message;
         importStatus.style.backgroundColor = isSuccess ? '#4CAF50' : '#ff4d4d';
@@ -31,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Funkcja do ukrywania statusu
     function hideImportStatus() {
+        logToConsole('Ukrywanie statusu importu', null);
         importStatus.style.display = 'none';
     }
 
@@ -39,13 +52,14 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/admin/get_users')
             .then(response => response.json())
             .then(data => {
+                logToConsole('Pobrano listę użytkowników', data);
                 const userTableBody = document.getElementById('user-list');
                 userTableBody.innerHTML = ''; // Wyczyść obecną tabelę
-    
+
                 data.forEach(user => {
                     // Przytnij datę utworzenia, aby usunąć część po kropce
                     const createdAt = user.created_at.split('.')[0]; // Usuwa wszystko po kropce
-    
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${user.id}</td>
@@ -63,13 +77,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     userTableBody.appendChild(row);
                 });
-    
+
                 // Ponownie dodaj event listenery po dynamicznej aktualizacji
                 attachDeleteButtonEvents();
-                attachPasswordButtonEvents(); // Dodanie event listenerów do przycisków resetowania hasła
+                attachPasswordButtonEvents();
             })
             .catch(error => {
-                console.error('Wystąpił błąd podczas odświeżania listy użytkowników:', error);
+                logToConsole('Błąd podczas pobierania listy użytkowników', error);
             });
     }
 
@@ -80,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteButtons.forEach(button => {
             button.addEventListener('click', function(event) {
                 event.preventDefault(); // Zablokuj domyślne przesłanie formularza
-
                 const userId = this.parentElement.querySelector('input[name="user_id"]').value;
+                logToConsole('Usuwanie użytkownika o ID', userId);
 
                 fetch(`/admin/delete_user`, {
                     method: 'POST',
@@ -94,13 +108,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.status === 'success') {
                         const row = this.closest('tr');
                         row.remove();
-                        console.log(`Użytkownik o ID ${userId} został usunięty.`);
+                        logToConsole(`Użytkownik o ID ${userId} został usunięty.`, data);
                     } else {
-                        console.error(`Błąd podczas usuwania użytkownika o ID ${userId}:`, data.message);
+                        logToConsole(`Błąd podczas usuwania użytkownika o ID ${userId}`, data.message);
                     }
                 })
                 .catch(error => {
-                    console.error('Wystąpił błąd podczas usuwania użytkownika:', error);
+                    logToConsole('Błąd podczas usuwania użytkownika', error);
                 });
             });
         });
@@ -110,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addUserForm) {
         addUserForm.addEventListener('submit', function(event) {
             event.preventDefault();
-
             const formData = new FormData(addUserForm);
             logToConsole('Wysłano dane do dodania użytkownika', formData);
 
@@ -122,20 +135,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.status === 'success') {
                     logToConsole('Użytkownik został dodany', data);
-                    // Odśwież listę użytkowników po dodaniu nowego użytkownika
-                    fetchAndUpdateUserList();
-
-                    // Wyczyść pola formularza po dodaniu użytkownika
+                    fetchAndUpdateUserList(); // Odśwież listę użytkowników po dodaniu nowego użytkownika
                     usernameInput.value = '';
                     emailInput.value = '';
                     passwordInput.value = '';
-                    roleSelect.value = 'user'; // Ustaw na domyślną wartość
+                    roleSelect.value = 'user';
                 } else {
-                    console.error('Wystąpił błąd podczas dodawania użytkownika:', data.message);
+                    logToConsole('Błąd podczas dodawania użytkownika', data.message);
                 }
             })
             .catch(error => {
-                console.error('Wystąpił błąd podczas dodawania użytkownika:', error);
+                logToConsole('Błąd podczas dodawania użytkownika', error);
             });
         });
     }
@@ -175,14 +185,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Logowanie zamykania modala
     closeModal.addEventListener('click', function() {
         modal.style.display = 'none';
-        logToConsole('Zamknięto modal resetowania hasła');
+        logToConsole('Zamknięto modal resetowania hasła', null);
     });
 
     // Logowanie kliknięcia w tło modala
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = 'none';
-            logToConsole('Kliknięto tło modala, modal został zamknięty');
+            logToConsole('Kliknięto tło modala, modal został zamknięty', null);
         }
     };
 
@@ -226,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                logToConsole('Wystąpił błąd podczas importu SQL', error);
+                logToConsole('Błąd podczas importu SQL', error);
                 showImportStatus('Wystąpił błąd podczas importu bazy danych.', false);
             });
         });
@@ -235,4 +245,70 @@ document.addEventListener('DOMContentLoaded', function() {
     // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
     attachDeleteButtonEvents();
     attachPasswordButtonEvents();
+
+    // Uruchomienie testów jednostkowych
+    if (runTestsButton) {
+        runTestsButton.addEventListener('click', function () {
+            logToConsole('Uruchamianie testów jednostkowych', null);
+    
+            // Ukryj pole wyników i pokaż loader
+            testResults.style.display = 'none';
+            loader.style.display = 'block';
+    
+            // Przewiń do loadera
+            scrollToElement(loader);
+    
+            fetch('/admin/run_tests', {
+                method: 'POST'
+            })
+            .then(response => {
+                logToConsole('Odpowiedź z serwera na uruchomienie testów', response);
+                return response.json(); // Spróbuj sparsować odpowiedź jako JSON
+            })
+            .then(data => {
+                logToConsole('Otrzymane dane JSON', data);
+    
+                // Tworzenie bardziej czytelnego podsumowania
+                const totalTests = data.totalTests || 0;
+                const totalAssertions = data.totalAssertions || 0;
+                const totalFailures = data.totalFailures || 0;
+                const passedTests = totalTests - totalFailures;
+    
+                let resultSummary = `
+                    <h3>Podsumowanie testów:</h3>
+                    <p><strong>Łączna liczba testów:</strong> ${totalTests}</p>
+                    <p><strong>Łączna liczba asercji:</strong> ${totalAssertions}</p>
+                    <p class="text-success"><strong>Testy zakończone sukcesem:</strong> ${passedTests}</p>
+                    <p class="text-failure"><strong>Testy zakończone niepowodzeniem:</strong> ${totalFailures}</p>
+                `;
+    
+                // Opcjonalnie, wyświetlenie szczegółów każdego repozytorium
+                if (data.results && data.results.length > 0) {
+                    let details = '<h4>Szczegóły testów dla poszczególnych repozytoriów:</h4><ul>';
+                    data.results.forEach(result => {
+                        details += `<li>${result.repository}: ${result.tests} testy, ${result.assertions} asercje, ${result.failures} błędy</li>`;
+                    });
+                    details += '</ul>';
+                    resultSummary += details;
+                }
+    
+                resultSummary += `<h3><a class="raw-link" href="http://localhost:8080/run_tests_raw" target="_blank">RAW</a></h3>`;
+    
+                // Wyświetlenie podsumowania i szczegółów
+                testResults.innerHTML = resultSummary;
+    
+                // Ukryj loader i pokaż wyniki
+                loader.style.display = 'none';
+                testResults.style.display = 'block';
+                scrollToElement(testResults); // Przewiń do wyników
+            })
+            .catch(error => {
+                logToConsole('Błąd podczas uruchamiania testów', error);
+                testResults.textContent = 'Wystąpił błąd podczas uruchamiania testów.';
+                loader.style.display = 'none';
+                testResults.style.display = 'block';
+                scrollToElement(testResults);
+            });
+        });
+    }
 });

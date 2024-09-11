@@ -57,7 +57,7 @@
     align-items: center;
 }
 
-.table-container, .form-container, .sql-dump-container {
+.table-container, .form-container, .sql-dump-container, .test-unit-container {
     width: 100%;
     overflow-x: auto;
     margin-top: 20px;
@@ -80,7 +80,8 @@
 
 .sql-dump-container button,
 .sql-import-button,
-.add-button {
+.add-button,
+.run-tests-button {
     padding: 15px;
     background-color: #2F3638;
     color: white;
@@ -95,7 +96,8 @@
 
 .sql-dump-container button:hover,
 .sql-import-button:hover,
-.add-button:hover {
+.add-button:hover,
+.run-tests-button:hover {
     background-color: #6DC1BC;
 }
 
@@ -157,12 +159,12 @@
 }
 
 .search-bar img {
-    width: 30px; 
+    width: 30px;
     height: 30px;
     margin-right: 10px;
-    background-color: #3a3f42; 
-    padding: 5px; 
-    border-radius: 15px; 
+    background-color: #3a3f42;
+    padding: 5px;
+    border-radius: 15px;
 }
 
 .search-bar input {
@@ -193,7 +195,7 @@ table {
 th, td {
     padding: 15px;
     border: 1px solid #4A5255;
-    text-align: center; 
+    text-align: center;
     color: #ffffff;
 }
 
@@ -210,12 +212,10 @@ tbody tr:nth-child(even) {
     background-color: #2F3638;
 }
 
-
 .table-container td {
     text-align: center;
     vertical-align: middle;
 }
-
 
 .button {
     min-width: 60px;
@@ -395,4 +395,97 @@ input:focus, select:focus {
 
 .reset-button:hover {
     background-color: #6DC1BC;
+}
+
+/* Stylizacja sekcji testów jednostkowych */
+.test-unit-container {
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    background-color: #4A5255;
+    padding: 20px;
+}
+
+
+.run-tests-button {
+    padding: 15px;
+    background-color: #2F3638;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.run-tests-button:hover {
+    background-color: #6DC1BC;
+}
+
+/* Loader animacja */
+.loader {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Stylizacja pola wyników testów */
+.test-results {
+    background-color: #333;
+    color: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    overflow-y: auto;
+    max-height: 800px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 1rem;
+    display: none;
+}
+
+.test-results.visible {
+    opacity: 1;
+}
+
+/* Stylizacja pola wyników w trakcie ładowania */
+.test-results.loading {
+    opacity: 0.7;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #ffffff;
+}
+
+
+.text-success {
+    color: #4CAF50;
+}
+
+.text-failure {
+    color: #f44336;
+}
+
+.raw-link {
+    color: #3498db;
+    text-decoration: underline;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 30px;
+}
+
+h3 .raw-link {
+    font-size: 1.5em;
 }
