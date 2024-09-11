@@ -99,7 +99,6 @@
     background-color: #6DC1BC;
 }
 
-/* Styl dla wyboru pliku */
 .file-input-container {
     text-align: center;
     margin-bottom: 20px;
@@ -136,7 +135,6 @@
     max-width: 100%;
 }
 
-/* Styl powiadomienia */
 .alert {
     padding: 10px;
     background-color: #6DC1BC;
@@ -147,7 +145,6 @@
     text-align: center;
 }
 
-/* Styl dla paska wyszukiwania */
 .search-bar {
     display: flex;
     align-items: center;
@@ -178,7 +175,6 @@
     margin-left: 10px;
 }
 
-
 .search-bar input::placeholder {
     color: #7a8285;
 }
@@ -187,7 +183,6 @@
     border: none;
 }
 
-/* Styl dla tabeli */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -198,7 +193,7 @@ table {
 th, td {
     padding: 15px;
     border: 1px solid #4A5255;
-    text-align: center; /* Wyśrodkowanie tekstu */
+    text-align: center; 
     color: #ffffff;
 }
 
@@ -215,13 +210,13 @@ tbody tr:nth-child(even) {
     background-color: #2F3638;
 }
 
-/* Wyrównanie przycisków w komórkach */
+
 .table-container td {
     text-align: center;
     vertical-align: middle;
 }
 
-/* Styl przycisków "Usuń" i "Hasło" */
+
 .button {
     min-width: 60px;
     padding: 5px 10px;
@@ -325,7 +320,7 @@ input:focus, select:focus {
     .delete-button, .reset-password-button {
         padding: 3px 7px;
         font-size: 14px;
-    }
+        margin-bottom: 10px;
 
     input, select {
         padding: 10px;
@@ -357,7 +352,7 @@ input:focus, select:focus {
 }
 
 .modal-content {
-    background-color: #2F3638;
+    background-color: #2b2f33;
     color: white;
     padding: 20px;
     border: none;
@@ -387,7 +382,7 @@ input:focus, select:focus {
 
 .reset-button {
     padding: 15px;
-    background-color: #6DC1BC;
+    background-color: #3a3f42;
     color: white;
     border: none;
     border-radius: 5px;
@@ -398,5 +393,5 @@ input:focus, select:focus {
 }
 
 .reset-button:hover {
-    background-color: #45a049;
+    background-color: #6DC1BC;
 }

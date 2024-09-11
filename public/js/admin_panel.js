@@ -66,13 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
                 // Ponownie dodaj event listenery po dynamicznej aktualizacji
                 attachDeleteButtonEvents();
+                attachPasswordButtonEvents(); // Dodanie event listenerów do przycisków resetowania hasła
             })
             .catch(error => {
                 console.error('Wystąpił błąd podczas odświeżania listy użytkowników:', error);
             });
     }
 
-    // Funkcja do dynamicznego usuwania użytkownika
+    // Funkcja do dynamicznego usuwania użytkownika bez potwierdzenia
     function attachDeleteButtonEvents() {
         const deleteButtons = document.querySelectorAll('.delete-button');
 
@@ -82,27 +83,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const userId = this.parentElement.querySelector('input[name="user_id"]').value;
 
-                if (confirm('Czy na pewno chcesz usunąć tego użytkownika?')) {
-                    fetch(`/admin/delete_user`, {
-                        method: 'POST',
-                        body: new URLSearchParams({
-                            user_id: userId
-                        })
+                fetch(`/admin/delete_user`, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        user_id: userId
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            const row = this.closest('tr');
-                            row.remove();
-                            console.log(`Użytkownik o ID ${userId} został usunięty.`);
-                        } else {
-                            console.error(`Błąd podczas usuwania użytkownika o ID ${userId}:`, data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Wystąpił błąd podczas usuwania użytkownika:', error);
-                    });
-                }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const row = this.closest('tr');
+                        row.remove();
+                        console.log(`Użytkownik o ID ${userId} został usunięty.`);
+                    } else {
+                        console.error(`Błąd podczas usuwania użytkownika o ID ${userId}:`, data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Wystąpił błąd podczas usuwania użytkownika:', error);
+                });
             });
         });
     }
@@ -158,17 +157,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Logowanie otwierania modala do resetowania hasła
-    passwordButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            const login = this.getAttribute('data-login');
-            modalUsername.textContent = login;
-            userIdInput.value = userId;
-            modal.style.display = 'flex';
-            logToConsole(`Kliknięto przycisk resetowania hasła dla użytkownika o ID: ${userId}`, `Login: ${login}`);
+    // Funkcja do obsługi przycisków resetowania hasła
+    function attachPasswordButtonEvents() {
+        const passwordButtons = document.querySelectorAll('.reset-password-button');
+        passwordButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const login = this.getAttribute('data-login');
+                modalUsername.textContent = login;
+                userIdInput.value = userId;
+                modal.style.display = 'flex';
+                logToConsole(`Kliknięto przycisk resetowania hasła dla użytkownika o ID: ${userId}`, `Login: ${login}`);
+            });
         });
-    });
+    }
 
     // Logowanie zamykania modala
     closeModal.addEventListener('click', function() {
@@ -232,4 +234,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
     attachDeleteButtonEvents();
+    attachPasswordButtonEvents();
 });

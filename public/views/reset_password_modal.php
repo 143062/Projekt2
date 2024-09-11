@@ -1,4 +1,3 @@
-<!-- Modal do resetu hasła użytkownika -->
 <div id="adminPasswordResetModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
