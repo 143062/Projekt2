@@ -321,6 +321,7 @@ input:focus, select:focus {
         padding: 3px 7px;
         font-size: 14px;
         margin-bottom: 10px;
+    }
 
     input, select {
         padding: 10px;
