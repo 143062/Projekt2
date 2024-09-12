@@ -21,19 +21,11 @@ use App\Controllers\FriendController;
 
 $path = trim($_SERVER['REQUEST_URI'], '/');
 $path = parse_url($path, PHP_URL_PATH);
-$isLoggedIn = isset($_SESSION['user_id']);
-$userRole = $_SESSION['role'] ?? null;
-if ($path === '' || $path === 'index' || $path === 'index.php') {
-    if ($isLoggedIn) {
-        if ($userRole === 'admin') {
-            $path = 'admin_panel';
-        } else {
-            $path = 'dashboard';
-        }
-    } else {
-        $path = 'login';
-    }
-}
+
+Router::get('index.php', fn() => header('Location: /dashboard'));
+Router::get('index.html', fn() => header('Location: /dashboard'));
+Router::get('index', fn() => header('Location: /dashboard'));
+
 
 Router::get('', [UserController::class, 'login']);
 Router::get('login', [UserController::class, 'login']);
