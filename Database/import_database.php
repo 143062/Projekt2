@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Import Bazy Danych</title>
+    <link rel="stylesheet" href="/public/css/common.css">
+    <style>
+        body {
+            margin: 10px !important;
+            padding: 10px !important;
+        }
+    </style>
 </head>
 <body>
     <h1>Importuj najnowszą bazę danych</h1>
@@ -33,7 +40,6 @@ usort($files, function($a, $b) {
 });
 
 $latest_file = $files[0];
-
 
 $db_host = 'db';
 $db_name = 'notatki_db';

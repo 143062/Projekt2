@@ -43,10 +43,27 @@ $totalAssertions = 0;
 $totalFailures = 0;
 $totalErrors = 0;
 
+echo <<<HTML
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podsumowanie Testów</title>
+    <link rel="stylesheet" href="/public/css/common.css">
+    <style>
+        body {
+            margin: 10px !important;
+            padding: 10px !important;
+        }
+    </style>
+</head>
+<body>
+<h1>Podsumowanie testów</h1>
+HTML;
+
 // Zbieranie wyników
 $results = [];
-
-echo "<h1>Podsumowanie testów</h1>";
 
 foreach ($testFiles as $testName => $testFile) {
     // Sekcja informująca, jakie testy są aktualnie uruchamiane
@@ -131,3 +148,9 @@ echo "<h2>Informacje o środowisku</h2>";
 echo "<pre>";
 print_r($_SERVER);
 echo "</pre>";
+
+// Zakończenie dokumentu HTML
+echo <<<HTML
+</body>
+</html>
+HTML;
