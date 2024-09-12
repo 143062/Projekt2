@@ -16,7 +16,20 @@ class Router
 
     public static function run($url)
     {
+
+        if (preg_match('/\.php$/', $url)) {
+            $newPath = str_replace('.php', '', $url);
+            header("Location: /$newPath");
+            exit();
+        } elseif (preg_match('/\.html$/', $url)) {
+            $newPath = str_replace('.html', '', $url);
+            header("Location: /$newPath");
+            exit();
+        }
+
+
         $method = $_SERVER['REQUEST_METHOD'];
+
 
         if (!isset(self::$routes[$method][$url])) {
             echo "Page not found.";
@@ -36,7 +49,6 @@ class Router
                 echo "Method not found.";
             }
         } elseif (is_callable($controllerAction)) {
-
             $controllerAction();
         } else {
             echo "Invalid route configuration.";

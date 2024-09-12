@@ -22,11 +22,6 @@ use App\Controllers\FriendController;
 $path = trim($_SERVER['REQUEST_URI'], '/');
 $path = parse_url($path, PHP_URL_PATH);
 
-Router::get('index.php', fn() => header('Location: /dashboard'));
-Router::get('index.html', fn() => header('Location: /dashboard'));
-Router::get('index', fn() => header('Location: /dashboard'));
-
-
 Router::get('', [UserController::class, 'login']);
 Router::get('login', [UserController::class, 'login']);
 Router::post('login', [UserController::class, 'login']);
@@ -52,6 +47,9 @@ Router::get('friends', [FriendController::class, 'friends']);
 Router::post('add-friend', [FriendController::class, 'addFriend']);
 Router::post('remove-friend', [FriendController::class, 'deleteFriend']);
 Router::get('logout', [LogoutController::class, 'logout']);
+
+
+Router::get('index', fn() => header('Location: /dashboard'));
 
 Router::get('import_database', fn() => require_once __DIR__ . '/Database/import_database.php');
 
