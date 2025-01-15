@@ -12,26 +12,30 @@ services:
     links:
       - php
     networks:
-      - pg-network
-  
-  db:
-    build:
-      context: .
-      dockerfile: docker/db/Dockerfile
-    ports:
-      - "5433:5432"
-    networks:
-      - pg-network
-  
+      - app-network
+
   php:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
     volumes:
-      - .:/app
+      - .:/app/
     networks:
-      - pg-network
-  
+      - app-network
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: notatki_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pg-admin
@@ -41,10 +45,10 @@ services:
     ports:
       - "5050:80"
     networks:
-      - pg-network
-  
+      - app-network
+
 networks:
-  pg-network:
+  app-network:
 
 volumes:
-  pg-data:
+  db-data:

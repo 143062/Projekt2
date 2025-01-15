@@ -1,0 +1,104 @@
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Pełna wysokość ekranu */
+
+    @media only screen and (min-width: 768px) {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 14em;
+    }
+}
+
+.form-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    align-items: center;
+
+    @media only screen and (min-width: 768px) {
+        flex-direction: column;
+    }
+
+    @media only screen and (max-width: 767px) {
+        flex-direction: row-reverse;
+        justify-content: center;
+        gap: 20px; /* Odstęp między przyciskami */
+    }
+}
+
+.form__submit {
+    width: 100%;
+
+    @media only screen and (min-width: 768px) {
+        order: 1;
+    }
+}
+
+.form_redirect {
+    color: #6DC1BC; /* Kolor tekstu przycisku Rejestracja */
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    transition: color 0.3s ease;
+    padding: 10px 20px;
+    display: inline-block; /* Dodane, aby przycisk był inline-block */
+    width: 100%; /* Szerokość przycisków w widoku mobilnym */
+
+    @media only screen and (min-width: 768px) {
+        width: auto; /* Przywróć szerokość w widoku stacjonarnym */
+        order: 2; /* Ustawienie kolejności dla wersji stacjonarnej */
+    }
+
+    @media only screen and (max-width: 767px) {
+        width: auto;
+        flex: 1; /* Równomierna szerokość przycisków */
+    }
+}
+
+.form_redirect:hover {
+    color: #82d4d0; /* Lżejszy kolor na hover */
+    text-decoration: none; /* Bez podkreślenia */
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+
+    @media only screen and (min-width: 768px) {
+        order: 2;
+        margin-bottom: 0;
+        margin-left: 30px;
+        transform: scale(1.2); /* Zwiększenie rozmiaru logo */
+    }
+}
+
+.logo__image {
+    width: 300px;
+    height: 300px;
+
+    @media only screen and (min-width: 768px) {
+        width: 360px; /* Zwiększenie szerokości logo w wersji stacjonarnej */
+        height: 360px; /* Zwiększenie wysokości logo w wersji stacjonarnej */
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .login-form,
+    .register-form {
+        order: 1;
+    }
+}
