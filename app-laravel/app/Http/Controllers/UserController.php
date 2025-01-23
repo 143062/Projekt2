@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log; // Dodano import klasy Log
 use App\Repositories\UserRepository;
 use App\Repositories\NoteRepository;
 
@@ -129,24 +130,35 @@ class UserController extends Controller
 
     public function dashboard()
     {
+        Log::info('Dashboard: Start metody');
+    
         if (!Session::has('user_id')) {
-            Log::error('Brak sesji user_id podczas ładowania dashboard.');
+            Log::error('Dashboard: Brak sesji user_id. Przekierowanie na login.');
             return redirect('/login');
         }
     
         $userId = Session::get('user_id');
-        Log::info('Pobieranie danych użytkownika dla user_id:', ['user_id' => $userId]);
+        Log::info('Dashboard: Pobieranie danych użytkownika dla user_id.', ['user_id' => $userId]);
     
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
-            Log::error('Nie znaleziono danych użytkownika w bazie danych.', ['user_id' => $userId]);
+            Log::error('Dashboard: Nie znaleziono danych użytkownika w bazie danych.', ['user_id' => $userId]);
             return redirect('/login');
         }
     
-        Log::info('Dane użytkownika zostały pobrane:', $user);
+        Log::info('Dashboard: Dane użytkownika zostały pobrane.', ['user' => $user]);
     
         $notes = $this->noteRepository->getNotesByUserId($userId) ?? [];
+        Log::info('Dashboard: Pobieranie notatek użytkownika.', ['notes_count' => count($notes)]);
+    
         $sharedNotes = $this->noteRepository->getSharedNotesWithUser($userId) ?? [];
+        Log::info('Dashboard: Pobieranie współdzielonych notatek.', ['shared_notes_count' => count($sharedNotes)]);
+    
+        Log::info('Dashboard: Renderowanie widoku dashboard.', [
+            'user_id' => $userId,
+            'notes_count' => count($notes),
+            'shared_notes_count' => count($sharedNotes)
+        ]);
     
         return view('dashboard', [
             'user' => $user,

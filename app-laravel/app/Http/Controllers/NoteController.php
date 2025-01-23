@@ -17,6 +17,7 @@ class NoteController extends Controller
         $this->friendRepository = $friendRepository;
     }
 
+    /*                                                                          TEORETYCZNIE OBSLUZONA PRZEZ USERCONTROLLER
     public function dashboard()
     {
         $userId = session('user_id');
@@ -28,6 +29,7 @@ class NoteController extends Controller
             'sharedNotes' => $sharedNotes
         ]);
     }
+    */
 
     public function addNote(Request $request)
     {

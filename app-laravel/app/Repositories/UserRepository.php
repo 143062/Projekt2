@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // Dodano poprawny import klasy Log
 
 class UserRepository
 {

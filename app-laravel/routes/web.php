@@ -17,8 +17,9 @@ Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 Route::post('/update_profile_picture', [UserController::class, 'updateProfilePicture']);
 Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
 
+
 // Trasy NoteController
-Route::get('/dashboard', [NoteController::class, 'dashboard'])->name('note.dashboard');
+// Route::get('/dashboard', [NoteController::class, 'dashboard'])->name('note.dashboard');  ta trasa powoduje konflikt i nie wyświetla się profilowe, useless ogolem
 Route::post('/add_note', [NoteController::class, 'addNote'])->name('note.add');
 Route::get('/get_note', [NoteController::class, 'editNote'])->name('note.get');
 Route::post('/delete_note', [NoteController::class, 'deleteNote'])->name('note.delete');
