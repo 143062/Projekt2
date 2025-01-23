@@ -1,9 +1,7 @@
-FROM php:7.4-fpm-alpine
-
+FROM php:8.3-fpm-alpine
 
 RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
-    --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community postgresql16-client
-
+    --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community postgresql17-client
 
 ENV RUN_DEPS \
     zlib \
@@ -36,11 +34,6 @@ RUN apk add --no-cache --virtual .run-deps $RUN_DEPS
 
 RUN echo 'memory_limit = -1' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini;
 
-RUN wget https://phar.phpunit.de/phpunit-9.phar && \
-    chmod +x phpunit-9.phar && \
-    mv phpunit-9.phar /usr/local/bin/phpunit
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-
-COPY . /app
-
-VOLUME ["/app"]
+WORKDIR /app-laravel
