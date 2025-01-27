@@ -2,30 +2,42 @@
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Note;
+use App\Models\SharedNote;
+use Illuminate\Support\Facades\Log;
 
 class NoteRepository
 {
     public function saveNote($userId, $id, $title, $content)
     {
         try {
+            // Sprawdzenie duplikatów
+            if (!$id && Note::where('user_id', $userId)
+                    ->where('title', $title)
+                    ->where('content', $content)
+                    ->exists()) {
+                return false; // Notatka już istnieje
+            }
+
             if ($id) {
                 // Aktualizacja notatki
-                DB::table('notes')
-                    ->where('id', $id)
+                $note = Note::where('id', $id)
                     ->where('user_id', $userId)
-                    ->update(['title' => $title, 'content' => $content]);
+                    ->firstOrFail();
+                $note->title = $title;
+                $note->content = $content;
+                $note->save();
             } else {
                 // Dodanie nowej notatki
-                $id = DB::table('notes')->insertGetId([
+                $note = Note::create([
                     'user_id' => $userId,
                     'title' => $title,
                     'content' => $content,
                 ]);
             }
-            return $id;
+            return $note->id; // Zwróć UUID notatki
         } catch (\Exception $e) {
-            \Log::error("Błąd podczas zapisywania notatki: " . $e->getMessage());
+            Log::error("Błąd podczas zapisywania notatki: " . $e->getMessage());
             return false;
         }
     }
@@ -33,93 +45,113 @@ class NoteRepository
     public function clearSharedNotes($noteId)
     {
         try {
-            DB::table('shared_notes')->where('note_id', $noteId)->delete();
+            SharedNote::where('note_id', $noteId)->delete();
         } catch (\Exception $e) {
-            \Log::error("Błąd podczas czyszczenia udostępnień notatki: " . $e->getMessage());
+            Log::error("Błąd podczas czyszczenia udostępnień notatki: " . $e->getMessage());
         }
     }
 
     public function shareNoteWithUser($noteId, $sharedWithUserId)
     {
         try {
-            DB::table('shared_notes')->insert([
+            SharedNote::create([
                 'note_id' => $noteId,
-                'shared_with_user_id' => $sharedWithUserId,
+                'user_id' => $sharedWithUserId,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Błąd podczas udostępniania notatki: " . $e->getMessage());
+            Log::error("Błąd podczas udostępniania notatki: " . $e->getMessage());
         }
     }
 
     public function getNotesByUserId($userId)
     {
-        return DB::table('notes')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->toArray();
+        try {
+            return Note::where('user_id', $userId)
+                ->orderBy('created_at', 'asc')
+                ->get()
+                ->toArray();
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania notatek użytkownika: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function getSharedNotesWithUser($userId)
     {
-        return DB::table('notes as n')
-            ->join('shared_notes as sn', 'n.id', '=', 'sn.note_id')
-            ->join('users as u', 'u.id', '=', 'n.user_id')
-            ->where('sn.shared_with_user_id', $userId)
-            ->select('n.*', 'u.login as owner_login')
-            ->orderBy('n.created_at', 'asc')
-            ->get()
-            ->toArray();
+        try {
+            return Note::whereHas('sharedWith', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                })
+                ->with('user:id,login') // Pobierz właściciela notatki
+                ->orderBy('created_at', 'asc')
+                ->get()
+                ->map(function ($note) {
+                    return [
+                        'id' => $note->id,
+                        'title' => $note->title,
+                        'content' => $note->content,
+                        'owner_login' => $note->user->login,
+                    ];
+                });
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania udostępnionych notatek: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function getSharedUsersByNoteId($noteId)
     {
-        $sharedUsers = DB::table('shared_notes as sn')
-            ->join('users as u', 'sn.shared_with_user_id', '=', 'u.id')
-            ->where('sn.note_id', $noteId)
-            ->select('u.id', 'u.login', 'u.profile_picture')
-            ->get()
-            ->toArray();
-
-        // Usuwanie "public/" ze ścieżek zdjęć profilowych
-        foreach ($sharedUsers as $user) {
-            if (isset($user->profile_picture)) {
-                $user->profile_picture = str_replace('public/', '', $user->profile_picture);
-            }
+        try {
+            return SharedNote::where('note_id', $noteId)
+                ->with('user:id,login,profile_picture')
+                ->get()
+                ->map(function ($sharedNote) {
+                    return [
+                        'id' => $sharedNote->user->id,
+                        'login' => $sharedNote->user->login,
+                        'profile_picture' => str_replace('public/', '', $sharedNote->user->profile_picture),
+                    ];
+                });
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania użytkowników, którym udostępniono notatkę: " . $e->getMessage());
+            return [];
         }
-
-        return $sharedUsers;
     }
 
     public function getNoteById($noteId, $userId)
     {
-        return DB::table('notes as n')
-            ->leftJoin('shared_notes as sn', 'n.id', '=', 'sn.note_id')
-            ->where('n.id', $noteId)
-            ->where(function ($query) use ($userId) {
-                $query->where('n.user_id', $userId)
-                      ->orWhere('sn.shared_with_user_id', $userId);
-            })
-            ->first();
+        try {
+            return Note::where('id', $noteId)
+                ->where(function ($query) use ($userId) {
+                    $query->where('user_id', $userId)
+                        ->orWhereHas('sharedWith', function ($q) use ($userId) {
+                            $q->where('user_id', $userId);
+                        });
+                })
+                ->with('sharedWith:id,login')
+                ->first();
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania szczegółów notatki: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function deleteNoteById($noteId, $userId)
     {
         try {
             // Usunięcie notatki
-            $deleted = DB::table('notes')
-                ->where('id', $noteId)
+            $note = Note::where('id', $noteId)
                 ->where('user_id', $userId)
-                ->delete();
+                ->firstOrFail();
+
+            $note->delete();
 
             // Usunięcie udostępnień
-            if ($deleted) {
-                $this->clearSharedNotes($noteId);
-            }
+            $this->clearSharedNotes($noteId);
 
-            return $deleted > 0;
+            return true;
         } catch (\Exception $e) {
-            \Log::error("Błąd podczas usuwania notatki: " . $e->getMessage());
+            Log::error("Błąd podczas usuwania notatki: " . $e->getMessage());
             return false;
         }
     }

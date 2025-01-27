@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +12,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Dodawanie ról tylko, jeśli tabela roles jest pusta
+        if (DB::table('roles')->count() === 0) {
+            $this->call(RolesSeeder::class);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Dodawanie użytkowników tylko, jeśli tabela users jest pusta
+        if (DB::table('users')->count() === 0) {
+            $this->call(UsersSeeder::class);
+        }
+
+        // Dodawanie notatek tylko, jeśli tabela notes jest pusta
+        if (DB::table('notes')->count() === 0) {
+            $this->call(NotesSeeder::class);
+        }
+
+        // Dodawanie znajomych tylko, jeśli tabela friends jest pusta
+        if (DB::table('friends')->count() === 0) {
+            $this->call(FriendsSeeder::class);
+        }
+
+        // Dodawanie udostępnionych notatek tylko, jeśli tabela shared_notes jest pusta
+        if (DB::table('shared_notes')->count() === 0) {
+            $this->call(SharedNotesSeeder::class);
+        }
     }
 }

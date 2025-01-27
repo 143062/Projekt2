@@ -2,7 +2,8 @@
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class FriendRepository
 {
@@ -17,60 +18,73 @@ class FriendRepository
             return false;
         }
 
-        // Dodanie znajomego do bazy danych
-        DB::table('friends')->insert([
-            'user_id' => $userId,
-            'friend_id' => $friendId,
-        ]);
+        try {
+            // Dodanie znajomego do relacji
+            $user = User::findOrFail($userId);
+            $user->friends()->attach($friendId);
 
-        return true;
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas dodawania znajomego: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function isFriend($userId, $friendId)
     {
-        return DB::table('friends')
-            ->where('user_id', $userId)
-            ->where('friend_id', $friendId)
-            ->exists();
+        try {
+            return User::findOrFail($userId)
+                ->friends()
+                ->where('friend_id', $friendId)
+                ->exists();
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas sprawdzania znajomości: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getFriendsByUserId($userId)
     {
-        $friends = DB::table('users')
-            ->join('friends', 'users.id', '=', 'friends.friend_id')
-            ->where('friends.user_id', $userId)
-            ->select('users.id', 'users.login', 'users.email', 'users.profile_picture')
-            ->get()
-            ->toArray();
+        try {
+            $friends = User::findOrFail($userId)
+                ->friends()
+                ->select('id', 'login', 'email', 'profile_picture')
+                ->get();
 
-        // Usuwanie "public/" ze ścieżki zdjęć profilowych znajomych
-        foreach ($friends as $friend) {
-            if (isset($friend->profile_picture)) {
-                $friend->profile_picture = str_replace('public/', '', $friend->profile_picture);
-            }
+            // Usunięcie "public/" ze ścieżek zdjęć profilowych znajomych
+            return $friends->map(function ($friend) {
+                if ($friend->profile_picture) {
+                    $friend->profile_picture = str_replace('public/', '', $friend->profile_picture);
+                }
+                return $friend;
+            });
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania znajomych użytkownika: " . $e->getMessage());
+            return [];
         }
-
-        return $friends;
     }
 
     public function getUserIdByLogin($login)
     {
-        return DB::table('users')->where('login', $login)->value('id');
+        try {
+            return User::where('login', $login)->value('id');
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas pobierania ID użytkownika po loginie: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function deleteFriend($userId, $friendId)
     {
-        $deleted = DB::table('friends')
-            ->where('user_id', $userId)
-            ->where('friend_id', $friendId)
-            ->delete();
+        try {
+            $user = User::findOrFail($userId);
+            $user->friends()->detach($friendId);
 
-        // Zwracanie szczegółowych logów
-        return [
-            'rowCount' => $deleted,
-            'log' => $deleted > 0
-                ? "Usunięto $deleted wierszy dla użytkownika $userId i znajomego $friendId"
-                : "Nie udało się usunąć znajomego $friendId dla użytkownika $userId",
-        ];
+            Log::info("Usunięto znajomego $friendId dla użytkownika $userId");
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Błąd podczas usuwania znajomego: " . $e->getMessage());
+            return false;
+        }
     }
 }
