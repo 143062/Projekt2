@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Repositories\UserRepository;
+use App\Models\Role;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
-class AdminController extends Controller
+class AdminControllerAPI extends Controller
 {
     private $userRepository;
 
@@ -18,12 +19,15 @@ class AdminController extends Controller
 
     /**
      * Pobieranie listy użytkowników.
+     * Endpoint: GET /api/admin/users
      */
-    public function index()
+    public function getUsers()
     {
+        $this->authorize('isAdmin'); // Sprawdzenie, czy użytkownik jest adminem
+
         try {
             $users = $this->userRepository->getAllUsersWithRoles();
-            return response()->json(['status' => 'success', 'data' => $users]);
+            return response()->json(['status' => 'success', 'data' => $users], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas pobierania listy użytkowników', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Nie udało się pobrać listy użytkowników.'], 500);
@@ -32,9 +36,12 @@ class AdminController extends Controller
 
     /**
      * Dodawanie użytkownika.
+     * Endpoint: POST /api/admin/users
      */
-    public function store(Request $request)
+    public function addUser(Request $request)
     {
+        $this->authorize('isAdmin');
+
         $validatedData = $request->validate([
             'email' => 'required|email|unique:users,email|max:255',
             'login' => 'required|string|unique:users,login|max:100',
@@ -43,32 +50,31 @@ class AdminController extends Controller
         ]);
 
         try {
-            $result = $this->userRepository->addUser(
+            $this->userRepository->addUser(
                 $validatedData['email'],
                 $validatedData['login'],
                 $validatedData['password'],
                 $validatedData['role']
             );
 
-            if ($result) {
-                return response()->json(['status' => 'success', 'message' => 'Użytkownik został dodany.']);
-            } else {
-                return response()->json(['status' => 'error', 'message' => 'Nie udało się dodać użytkownika.'], 500);
-            }
+            return response()->json(['status' => 'success', 'message' => 'Użytkownik został dodany.'], 201);
         } catch (\Exception $e) {
             Log::error('Błąd podczas dodawania użytkownika', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
+            return response()->json(['status' => 'error', 'message' => 'Nie udało się dodać użytkownika.'], 500);
         }
     }
 
     /**
      * Usuwanie użytkownika.
+     * Endpoint: DELETE /api/admin/users/{id}
      */
-    public function destroy($id)
+    public function deleteUser($id)
     {
+        $this->authorize('isAdmin');
+
         try {
             $this->userRepository->deleteUserById($id);
-            return response()->json(['status' => 'success', 'message' => 'Użytkownik został usunięty.']);
+            return response()->json(['status' => 'success', 'message' => 'Użytkownik został usunięty.'], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas usuwania użytkownika', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Nie udało się usunąć użytkownika.'], 500);
@@ -76,13 +82,40 @@ class AdminController extends Controller
     }
 
     /**
-     * Eksport bazy danych.
+     * Resetowanie hasła użytkownika.
+     * Endpoint: POST /api/admin/reset-password
      */
-    public function sqlDump()
+    public function resetPassword(Request $request)
     {
+        $this->authorize('isAdmin');
+
+        $validated = $request->validate([
+            'user_id' => 'required|uuid|exists:users,id',
+            'new_password' => 'required|string|min:6',
+        ]);
+
+        try {
+            $hashedPassword = Hash::make($validated['new_password']);
+            $this->userRepository->updateUserPassword($validated['user_id'], $hashedPassword);
+
+            return response()->json(['status' => 'success', 'message' => 'Hasło użytkownika zostało zresetowane.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas resetowania hasła', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Nie udało się zresetować hasła.'], 500);
+        }
+    }
+
+    /**
+     * Eksport bazy danych.
+     * Endpoint: GET /api/admin/sql-dump
+     */
+    public function exportDatabase()
+    {
+        $this->authorize('isAdmin');
+
         try {
             $backupPath = storage_path('app/backup.sql');
-            $command = "PGPASSWORD='password' pg_dump -h db -U user -d notatki_db > $backupPath";
+            $command = "PGPASSWORD='" . env('DB_PASSWORD') . "' pg_dump -h " . env('DB_HOST') . " -U " . env('DB_USERNAME') . " -d " . env('DB_DATABASE') . " > $backupPath";
 
             exec($command, $output, $resultCode);
 
@@ -99,10 +132,13 @@ class AdminController extends Controller
 
     /**
      * Import bazy danych.
+     * Endpoint: POST /api/admin/sql-import
      */
-    public function sqlImport(Request $request)
+    public function importDatabase(Request $request)
     {
-        $validatedData = $request->validate([
+        $this->authorize('isAdmin');
+
+        $validated = $request->validate([
             'sql_file' => 'required|file|mimes:sql',
         ]);
 
@@ -110,12 +146,12 @@ class AdminController extends Controller
             $file = $request->file('sql_file');
             $filePath = $file->storeAs('imports', 'import.sql', 'local');
 
-            $command = "PGPASSWORD='password' psql -h db -U user -d notatki_db < " . storage_path("app/$filePath");
+            $command = "PGPASSWORD='" . env('DB_PASSWORD') . "' psql -h " . env('DB_HOST') . " -U " . env('DB_USERNAME') . " -d " . env('DB_DATABASE') . " < " . storage_path("app/$filePath");
 
             exec($command, $output, $resultCode);
 
             if ($resultCode === 0) {
-                return response()->json(['status' => 'success', 'message' => 'Baza danych została zaimportowana.']);
+                return response()->json(['status' => 'success', 'message' => 'Baza danych została zaimportowana.'], 200);
             } else {
                 return response()->json(['status' => 'error', 'message' => 'Błąd podczas importowania bazy danych.'], 500);
             }

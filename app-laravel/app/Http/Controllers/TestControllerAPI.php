@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-
-class TestController extends Controller
+class TestControllerAPI extends Controller
 {
+    /**
+     * Endpoint testowy API.
+     */
     public function index()
     {
         return response()->json(['message' => 'Test działa!'], 200);

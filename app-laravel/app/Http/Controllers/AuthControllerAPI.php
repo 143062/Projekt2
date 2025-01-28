@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
-class AuthController extends Controller
+class AuthControllerAPI extends Controller
 {
     /**
      * Register a new user.
@@ -79,7 +79,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // Usunięcie tokenów API użytkownika
         $request->user()->tokens()->delete();
+
+        // Zniszczenie wszystkich zmiennych sesji
+        Session::flush();
 
         return response()->json([
             'message' => 'Wylogowano pomyślnie',
