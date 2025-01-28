@@ -20,14 +20,13 @@
                 <div class="error-container" style="display: none;">
                     <p class="error-message"></p>
                 </div>
-                <form id="register-form" class="form-column" method="POST" action="/register">
-                    <?php echo csrf_field(); ?>
+                <form id="register-form" class="form-column" novalidate>
                     <input type="email" id="email" name="email" placeholder="Email" required>
                     <input type="text" id="login" name="login" placeholder="Login" required>
                     <input type="password" id="password" name="password" placeholder="Hasło" required>
                     <input type="password" id="confirm_password" name="confirm_password" placeholder="Potwierdź Hasło" required>
                     <div class="buttons-container">
-                        <button type="submit" class="form__submit">Rejestruj</button>
+                        <button type="button" id="register-submit" class="form__submit">Rejestruj</button>
                         <a href="/login" class="form_redirect">Logowanie</a>
                     </div>
                 </form>

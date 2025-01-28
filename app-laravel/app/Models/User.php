@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -19,16 +20,32 @@ class User extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
-    // timestampy
+    // Timestampy
     public $timestamps = true;
 
-    // Automatyczne hashowanie hasła
+    /**
+     * Automatyczne generowanie UUID.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
+
+    /**
+     * Automatyczne hashowanie hasła.
+     */
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = bcrypt($value);
     }
 
-    // Relacja: użytkownik należy do roli
+    // Relacje: użytkownik należy do roli
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
