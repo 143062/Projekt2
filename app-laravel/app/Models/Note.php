@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Note extends Model
 {
+    use HasFactory;
+
     // Wypełnialne kolumny
     protected $fillable = ['user_id', 'title', 'content'];
 
     // Klucz główny to UUID
     protected $keyType = 'string';
     public $incrementing = false;
+
+    // Timestampy
+    public $timestamps = true;
 
     // Relacja: notatka należy do użytkownika
     public function user()

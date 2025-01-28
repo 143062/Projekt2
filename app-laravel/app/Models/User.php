@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -9,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable; // Dodanie traitów dla obsługi API i powiadomień
+    use HasApiTokens, Notifiable, HasFactory;
 
     // Wypełnialne kolumny
     protected $fillable = ['login', 'email', 'password', 'profile_picture', 'role_id'];
@@ -17,6 +18,9 @@ class User extends Authenticatable
     // Klucz główny to UUID
     protected $keyType = 'string';
     public $incrementing = false;
+
+    // timestampy
+    public $timestamps = true;
 
     // Automatyczne hashowanie hasła
     public function setPasswordAttribute($value)

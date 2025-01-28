@@ -7,6 +7,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\NoteController;
 use App\Http\Controllers\API\AdminController;
+use App\Http\Controllers\API\TestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,4 +69,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::delete('/users/{id}', [AdminController::class, 'destroy']); // Usuwanie użytkownika
     Route::get('/sql-dump', [AdminController::class, 'sqlDump']); // Eksport bazy danych
     Route::post('/sql-import', [AdminController::class, 'sqlImport']); // Import bazy danych
+});
+
+// Trasy testowe
+Route::prefix('test')->group(function () {
+    Route::get('/', [TestController::class, 'index']); // Trasa do testowego kontrolera
 });
