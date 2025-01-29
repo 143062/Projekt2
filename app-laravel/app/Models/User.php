@@ -37,14 +37,6 @@ class User extends Authenticatable
         });
     }
 
-    /**
-     * Automatyczne hashowanie hasła.
-     */
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = bcrypt($value);
-    }
-
     // Relacje: użytkownik należy do roli
     public function role()
     {

@@ -20,12 +20,12 @@
                 <div class="error-container" style="display: none;">
                     <p class="error-message"></p>
                 </div>
-                <form id="login-form" class="form-column" method="POST" action="/login">
-                    <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
-                    <input type="text" id="login" name="login" placeholder="Login" required>
+                <!-- Formularz -->
+                <form id="login-form" class="form-column" novalidate>
+                    <input type="text" id="login_or_email" name="login_or_email" placeholder="Login lub Email" required>
                     <input type="password" id="password" name="password" placeholder="Hasło" required>
                     <div class="buttons-container">
-                        <button type="submit" class="form__submit">Zaloguj</button>
+                        <button type="button" id="login-submit" class="form__submit">Zaloguj</button>
                         <a href="/register" class="form_redirect">Rejestracja</a>
                     </div>
                 </form>

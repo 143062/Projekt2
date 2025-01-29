@@ -2,18 +2,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('login-form');
     const errorContainer = document.querySelector('.error-container');
     const errorMessage = document.querySelector('.error-message');
-    const loginInput = document.getElementById('login');
+    const loginInput = document.getElementById('login_or_email'); // Zmieniono id na login_or_email
     const passwordInput = document.getElementById('password');
+    const loginButton = document.getElementById('login-submit'); // Obsługa kliknięcia przycisku
 
-    // Zablokowanie domyślnej walidacji przeglądarki
-    loginForm.setAttribute('novalidate', true);
-
+    // Walidacja formularza
     function validateForm() {
-        const login = loginInput.value.trim();
+        const loginOrEmail = loginInput.value.trim();
         const password = passwordInput.value.trim();
 
-        if (!login) {
-            showError('Brak loginu');
+        if (!loginOrEmail) {
+            showError('Brak loginu lub emaila');
             return false;
         }
 
@@ -25,35 +24,44 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     }
 
+    // Funkcja do wyświetlania błędów
     function showError(message) {
         errorContainer.style.display = 'block';
         errorMessage.textContent = message;
     }
 
-    loginForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-
+    // Obsługa kliknięcia przycisku "Zaloguj"
+    loginButton.addEventListener('click', function () {
         if (validateForm()) {
-            const formData = new FormData(loginForm);
+            const data = {
+                login_or_email: loginInput.value.trim(),
+                password: passwordInput.value.trim(),
+            };
 
-            fetch('/login', {
+            // Wysłanie danych do API
+            fetch('/api/auth/login', {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'error') {
-                        showError(data.message);
-                    } else if (data.status === 'success') {
-                        window.location.href = data.redirect;
+                .then(async (response) => {
+                    const responseData = await response.json();
+
+                    if (!response.ok) {
+                        // Wyświetlenie błędów zwróconych przez serwer
+                        throw new Error(responseData.message || 'Błąd logowania.');
                     }
+
+                    // Zapisz token w localStorage
+                    localStorage.setItem('auth_token', responseData.token);
+
+                    // Przekierowanie na stronę główną
+                    alert('Logowanie zakończone sukcesem!');
+                    window.location.href = '/dashboard';
                 })
-                .catch(error => {
+                .catch((error) => {
                     console.error('Wystąpił błąd:', error);
+                    showError(error.message || 'Wystąpił problem z logowaniem.');
                 });
         }
     });
