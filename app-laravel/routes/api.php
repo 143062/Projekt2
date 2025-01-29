@@ -30,9 +30,9 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function () {
 
 // Trasy dla znajomych
 Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [FriendControllerAPI::class, 'index']); // Lista znajomych
-    Route::post('/add', [FriendControllerAPI::class, 'store']); // Dodanie znajomego
-    Route::delete('/{id}', [FriendControllerAPI::class, 'destroy']);
+    Route::get('/', [FriendControllerAPI::class, 'index']); // Pobieranie listy znajomych
+    Route::post('/', [FriendControllerAPI::class, 'store']); // Poprawione: zamiast '/add' teraz '/'
+    Route::delete('/{id}', [FriendControllerAPI::class, 'destroy']); // Usuwanie znajomego
 });
 
 // Trasy dla notatek

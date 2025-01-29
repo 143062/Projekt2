@@ -3,8 +3,6 @@
         <span class="back-button"><img src="/img/arrow_back.svg" alt="Back" class="back-icon"></span>
         <h2>Zarządzaj znajomymi</h2>
         <form id="add-friend-form" novalidate>
-            <!-- Dodano token CSRF -->
-            <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
             
             <label for="friend-login">Login znajomego:</label>
             <input type="text" id="friend-login" name="friend-login" class="friend-username-input">

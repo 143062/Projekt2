@@ -52,8 +52,10 @@ class User extends Authenticatable
     // Relacja: użytkownik jest znajomym wielu użytkowników
     public function friends()
     {
-        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id');
+        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
+            ->using(Friend::class);
     }
+    
 
     // Relacja: użytkownik ma udostępnione notatki
     public function sharedNotes()

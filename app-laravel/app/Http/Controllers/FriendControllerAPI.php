@@ -14,11 +14,11 @@ class FriendControllerAPI extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user(); // Pobranie użytkownika z tokenu Sanctum
+            $user = $request->user();
             $friends = $user->friends()->select('id', 'login', 'email', 'profile_picture')->get();
 
             // Usunięcie "public/" ze ścieżek zdjęć profilowych znajomych
-            $friends = $friends->map(function ($friend) {
+            $friends->transform(function ($friend) {
                 if ($friend->profile_picture) {
                     $friend->profile_picture = str_replace('public/', '', $friend->profile_picture);
                 }
@@ -38,26 +38,29 @@ class FriendControllerAPI extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'friend_login' => 'required|string',
+            'friend_login' => 'required|string|exists:users,login',
         ]);
 
         try {
-            $user = $request->user(); // Pobranie użytkownika z tokenu Sanctum
-
+            $user = $request->user();
             $friend = User::where('login', $validatedData['friend_login'])->first();
 
-            if (!$friend) {
-                return response()->json(['status' => 'error', 'message' => 'Nie znaleziono użytkownika.'], 404);
+            //  Nie można dodać samego siebie
+            if ($user->id === $friend->id) {
+                return response()->json(['status' => 'error', 'message' => 'Nie możesz dodać siebie jako znajomego.'], 400);
             }
 
+            //  Nie można dodać administratora jako znajomego
             if ($friend->role->name === 'admin') {
                 return response()->json(['status' => 'error', 'message' => 'Nie możesz dodać administratora jako znajomego.'], 403);
             }
 
-            if ($user->friends()->where('friend_id', $friend->id)->exists()) {
+            //  Sprawdzenie, czy znajomy już istnieje w pivot table
+            if ($user->friends()->wherePivot('friend_id', $friend->id)->exists()) {
                 return response()->json(['status' => 'error', 'message' => 'Znajomy już znajduje się na Twojej liście.']);
             }
 
+            // ✅ Dodanie znajomego
             $user->friends()->attach($friend->id);
 
             return response()->json(['status' => 'success', 'message' => 'Znajomy został dodany.']);
@@ -73,12 +76,19 @@ class FriendControllerAPI extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $user = $request->user(); // Pobranie użytkownika z tokenu Sanctum
+            $user = $request->user();
 
-            if (!$user->friends()->where('friend_id', $id)->exists()) {
+            //  Najpierw sprawdź, czy użytkownik o danym ID istnieje
+            if (!User::where('id', $id)->exists()) {
+                return response()->json(['status' => 'error', 'message' => 'Nie znaleziono użytkownika.'], 404);
+            }
+
+            //  Sprawdzenie znajomości w pivot table
+            if (!$user->friends()->wherePivot('friend_id', $id)->exists()) {
                 return response()->json(['status' => 'error', 'message' => 'Nie znaleziono znajomego na Twojej liście.']);
             }
 
+            // ✅ Usunięcie znajomego
             $user->friends()->detach($id);
 
             return response()->json(['status' => 'success', 'message' => 'Znajomy został usunięty.']);

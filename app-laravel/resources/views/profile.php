@@ -48,6 +48,7 @@
     <script src="/js/init.js"></script>
 
     <!-- Skrypt obsługujący profil użytkownika -->
+    <script src="/js/profile-api.js"></script>
     <script src="/js/profile.js"></script>
 </body>
 </html>
