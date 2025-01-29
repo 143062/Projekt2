@@ -1,3 +1,35 @@
+document.addEventListener('DOMContentLoaded', function () {
+    loadUserProfile();
+
+    // Obsługa wylogowania
+    document.getElementById('logout-button').addEventListener('click', function (event) {
+        event.preventDefault();
+        Auth.logout();
+    });
+});
+
+function loadUserProfile() {
+    fetch('/api/users/me', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${Auth.getToken()}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('profile-picture').src = data.data.profile_picture ? '/' + data.data.profile_picture : '/img/default_profile_picture.png';
+            document.getElementById('profile-name').textContent = data.data.login;
+        } else {
+            console.error('Błąd pobierania profilu:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Błąd podczas ładowania profilu:', error);
+    });
+}
+
 document.getElementById('profile-button').addEventListener('click', function () {
     document.getElementById('profile-form-modal').style.display = 'flex';
 });
@@ -9,12 +41,26 @@ document.getElementById('file-input').addEventListener('change', function () {
 
     if (file) {
         fileName.textContent = `Wybrano plik: ${file.name}`;
-        fileName.style.color = 'white'; // Zmiana koloru komunikatu na biały, gdy plik został wybrany
+        fileName.style.color = 'white';
     } else {
         fileName.textContent = 'Nie wybrano pliku';
-        fileName.style.color = 'red'; // Kolor czerwony, gdy nie wybrano pliku
+        fileName.style.color = 'red';
     }
 });
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// LEGACY ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
     const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
@@ -30,22 +76,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeProfileFormModal = document.getElementById('close-profile-form-modal');
     const fileName = document.getElementById('file-name');
     const friendLoginInput = document.getElementById('friend-login');
-    const message = document.createElement('p');
-    message.style.display = 'none';
-    document.getElementById('add-friend-form').appendChild(message);
-
-    // Funkcja wyświetlająca komunikaty
-    function showMessage(messageText, color) {
-        message.textContent = messageText;
-        message.style.color = color;
-        message.style.display = 'block';
-    }
-
-    // Funkcja resetująca komunikaty
-    function resetMessage() {
-        message.style.display = 'none';
-        message.textContent = '';
-    }
 
     function resetFileInput() {
         fileInput.value = ''; 
@@ -64,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
     closeFriendsModal.onclick = function () {
         friendsModal.style.display = 'none';
         friendLoginInput.value = ''; 
-        resetMessage(); 
     };
 
     closeProfileFormModal.onclick = function () {
@@ -77,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.target === friendsModal) {
             friendsModal.style.display = 'none';
             friendLoginInput.value = ''; 
-            resetMessage(); 
         }
         if (event.target === profileModal) {
             profileModal.style.display = 'none';
@@ -86,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    // Funkcja zmieniająca zdjęcie profilowe
+    // Poprawiona funkcja zmiany zdjęcia profilowego
     profileForm.addEventListener('submit', function (event) {
         event.preventDefault();
 
@@ -99,128 +127,94 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(profileForm);
         formData.append('_token', csrfToken); 
 
-        fetch('/update_profile_picture', {
+        fetch('/api/users/me/profile-picture', { // Poprawiona ścieżka API
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${Auth.getToken()}`
+            },
             body: formData
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    profilePicture.src = data.newProfilePictureUrl + '?' + new Date().getTime();
-                    profileModal.style.display = 'none';
-                    resetFileInput();
-                } else {
-                    fileName.textContent = 'Wystąpił problem z aktualizacją zdjęcia';
-                    fileName.style.color = 'red';
-                }
-            })
-            .catch(error => {
-                console.error('Błąd podczas zmiany zdjęcia profilowego:', error);
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                profilePicture.src = '/' + data.path + '?' + new Date().getTime();
+                profileModal.style.display = 'none';
+                resetFileInput();
+            } else {
                 fileName.textContent = 'Wystąpił problem z aktualizacją zdjęcia';
                 fileName.style.color = 'red';
-            });
-    });
-
-    document.getElementById('add-friend-form').addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (!validateFriendLogin()) {
-            return;
-        }
-
-        const friendLogin = friendLoginInput.value.trim();
-
-        fetch('/add-friend', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-TOKEN': csrfToken 
-            },
-            body: new URLSearchParams({ friend_login: friendLogin })
+            }
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadFriends();
-                    friendLoginInput.value = '';
-                    showMessage('Znajomy został dodany pomyślnie', 'green');
-                } else {
-                    showMessage(data.message, 'red');
-                }
-            })
-            .catch(error => {
-                console.error('Błąd podczas dodawania znajomego:', error);
-                showMessage('Wystąpił problem z dodaniem znajomego. Spróbuj ponownie', 'red');
-            });
+        .catch(error => {
+            console.error('Błąd podczas zmiany zdjęcia profilowego:', error);
+            fileName.textContent = 'Wystąpił problem z aktualizacją zdjęcia';
+            fileName.style.color = 'red';
+        });
     });
-
-    function removeFriend(friendLogin) {
-        fetch('/remove-friend', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-TOKEN': csrfToken 
-            },
-            body: new URLSearchParams({ friend_login: friendLogin })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadFriends();
-                    showMessage('Znajomy został pomyślnie usunięty', 'green');
-                } else {
-                    showMessage('Wystąpił problem z usunięciem znajomego', 'red');
-                }
-            })
-            .catch(error => {
-                console.error('Błąd podczas usuwania znajomego:', error);
-            });
-    }
 
     function loadFriends() {
-        fetch('/friends')
-            .then(response => response.json())
-            .then(data => {
-                const friendsList = document.getElementById('friends-list');
-                friendsList.innerHTML = '';
-                data.forEach(friend => {
-                    const listItem = document.createElement('li');
-                    const friendItem = document.createElement('div');
-                    friendItem.classList.add('friend-item');
+        fetch('/api/friends', { // Poprawiona ścieżka API
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${Auth.getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const friendsList = document.getElementById('friends-list');
+            friendsList.innerHTML = '';
+            data.forEach(friend => {
+                const listItem = document.createElement('li');
+                const friendItem = document.createElement('div');
+                friendItem.classList.add('friend-item');
 
-                    const friendProfilePic = document.createElement('img');
-                    friendProfilePic.src = friend.profile_picture ? friend.profile_picture : '/img/default_profile_picture.png';
-                    friendProfilePic.alt = 'Profilowe';
-                    friendProfilePic.classList.add('friend-profile-picture');
+                const friendProfilePic = document.createElement('img');
+                friendProfilePic.src = friend.profile_picture ? '/' + friend.profile_picture : '/img/default_profile_picture.png';
+                friendProfilePic.alt = 'Profilowe';
+                friendProfilePic.classList.add('friend-profile-picture');
 
-                    const friendLogin = document.createElement('span');
-                    friendLogin.textContent = friend.login;
+                const friendLogin = document.createElement('span');
+                friendLogin.textContent = friend.login;
 
-                    friendItem.appendChild(friendProfilePic);
-                    friendItem.appendChild(friendLogin);
+                friendItem.appendChild(friendProfilePic);
+                friendItem.appendChild(friendLogin);
 
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Usuń';
-                    deleteButton.classList.add('delete-friend-button');
-                    deleteButton.onclick = function () {
-                        removeFriend(friend.login);
-                    };
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Usuń';
+                deleteButton.classList.add('delete-friend-button');
+                deleteButton.onclick = function () {
+                    removeFriend(friend.login);
+                };
 
-                    listItem.appendChild(friendItem);
-                    listItem.appendChild(deleteButton);
-                    friendsList.appendChild(listItem);
-                });
-            })
-            .catch(error => {
-                console.error('Błąd podczas ładowania znajomych:', error);
+                listItem.appendChild(friendItem);
+                listItem.appendChild(deleteButton);
+                friendsList.appendChild(listItem);
             });
+        })
+        .catch(error => {
+            console.error('Błąd podczas ładowania znajomych:', error);
+        });
     }
 
-    function validateFriendLogin() {
-        const friendLogin = friendLoginInput.value.trim();
-        if (!friendLogin) {
-            showMessage('Proszę wpisać login znajomego', 'red');
-            return false;
-        }
-        return true;
+    function removeFriend(friendLogin) {
+        fetch('/api/friends/' + friendLogin, { // Poprawiona ścieżka API
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${Auth.getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadFriends();
+            } else {
+                console.error('Błąd podczas usuwania znajomego:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas usuwania znajomego:', error);
+        });
     }
 });

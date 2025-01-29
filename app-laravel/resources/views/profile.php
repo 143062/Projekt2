@@ -6,9 +6,6 @@
     <title>Profil</title>
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/profile.css">
-
-    <!-- Token CSRF -->
-    <meta name="csrf-token" content="<?php echo csrf_token(); ?>">
 </head>
 <body>
     <div class="container">
@@ -28,14 +25,13 @@
                     <img src="/img/adjust_dark.svg" alt="Zdjęcie" class="menu-icon"> Zdjęcie
                 </a>
                 <div class="menu-divider"></div>
-                <a href="/logout" class="menu-item">
+                <a href="#" class="menu-item" id="logout-button">
                     <img src="/img/logout.svg" alt="Wyloguj" class="menu-icon"> Wyloguj
                 </a>
             </div>
             <div class="profile">
-                <!-- Wyświetlanie zdjęcia profilowego -->
-                <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Profile Picture" class="profile-picture" id="profile-picture">
-                <p class="profile-name"><?php echo htmlspecialchars($user['login']); ?></p>
+                <img src="" alt="Profile Picture" class="profile-picture" id="profile-picture">
+                <p class="profile-name" id="profile-name"></p>
             </div>
         </div>
 
@@ -46,6 +42,12 @@
         <?php include resource_path('views/manage_friends_modal.php'); ?>
 
     </div>
+
+    <!-- Dodane skrypty do autoryzacji i inicjalizacji -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/init.js"></script>
+
+    <!-- Skrypt obsługujący profil użytkownika -->
     <script src="/js/profile.js"></script>
 </body>
 </html>

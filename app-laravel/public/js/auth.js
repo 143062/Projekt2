@@ -1,27 +1,20 @@
-// auth.js - Obsługa autoryzacji użytkownika
-
 const Auth = {
-    // Sprawdzenie, czy użytkownik jest zalogowany
     isAuthenticated: function () {
         return localStorage.getItem('auth_token') !== null;
     },
 
-    // Pobranie tokena użytkownika
     getToken: function () {
         return localStorage.getItem('auth_token');
     },
 
-    // Zapisanie tokena do localStorage
     setToken: function (token) {
         localStorage.setItem('auth_token', token);
     },
 
-    // Usunięcie tokena (wylogowanie)
     clearToken: function () {
         localStorage.removeItem('auth_token');
     },
 
-    // Dołączanie tokena do nagłówków żądań API
     attachAuthHeaders: function (headers = {}) {
         const token = this.getToken();
         if (token) {
@@ -30,20 +23,17 @@ const Auth = {
         return headers;
     },
 
-    // Wylogowanie użytkownika
     logout: function () {
-        const token = this.getToken();
-
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
         fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: this.attachAuthHeaders({ 'Content-Type': 'application/json' })
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${this.getToken()}`,
+                'Content-Type': 'application/json'
+            }
         })
-        .then(() => {
+        .then(response => response.json())
+        .then(data => {
+            console.log('Wylogowano:', data.message);
             this.clearToken();
             window.location.href = '/login';
         })
@@ -54,7 +44,6 @@ const Auth = {
         });
     },
 
-    // Sprawdzanie dostępu do stron
     checkAccess: function () {
         const isLoginPage = window.location.pathname === '/login';
         const isRegisterPage = window.location.pathname === '/register';

@@ -144,13 +144,18 @@ class AuthControllerAPI extends Controller
     public function logout(Request $request)
     {
         try {
-            // Usunięcie tokenów API użytkownika
-            $request->user()->tokens()->delete();
-             Log::info('Użytkownik wylogowany pomyślnie', ['user_id' => $request->user()->id]);
-
-            // Zniszczenie wszystkich zmiennych sesji (niepotrzebne po skończeniu miracji, poki co neich sobie bedzie na wszelki wypadek)
-            Session::flush();
-
+            $user = $request->user();
+    
+            if (!$user) {
+                return response()->json(['message' => 'Użytkownik nie jest zalogowany.'], 401);
+            }
+    
+            // Usunięcie tylko bieżącego tokena zamiast wszystkich
+            $request->user()->currentAccessToken()->delete();
+            Log::info('Użytkownik wylogowany pomyślnie', ['user_id' => $user->id]);
+    
+            Session::flush(); // LEGACY
+    
             return response()->json([
                 'message' => 'Wylogowano pomyślnie',
             ], 200);
@@ -159,4 +164,5 @@ class AuthControllerAPI extends Controller
             return response()->json(['message' => 'Wystąpił błąd podczas wylogowywania.'], 500);
         }
     }
+    
 }

@@ -20,4 +20,8 @@ Route::get('/test-db', function () {
 // Domyślna strona startowa
 Route::get('/', fn() => redirect('/login'));
 
+// Dashboard użytkownika
 Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+
+// Dodana trasa dla profilu użytkownika
+Route::get('/profile', fn() => view('profile'))->name('profile');
