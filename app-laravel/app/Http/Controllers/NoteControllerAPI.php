@@ -195,4 +195,31 @@ public function storeOrUpdate(Request $request, $id = null)
             return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
     }
+
+
+    public function show(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            $note = Note::where('id', $id)
+                        ->where('user_id', $user->id) // Pobiera tylko notatki użytkownika
+                        ->first();
+    
+            if (!$note) {
+                return response()->json(['message' => 'Notatka nie istnieje lub brak dostępu'], 404);
+            }
+    
+            return response()->json($note); // Zwraca notatkę jako JSON
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas pobierania notatki', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
+        }
+    }
+    
+
+
+
+
+
+
 }

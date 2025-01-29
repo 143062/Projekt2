@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400">
 
-    <!-- Meta-tag CSRF -->
-    <meta name="csrf-token" content="<?php echo csrf_token(); ?>">
 </head>
 <body>
     <div class="container">
@@ -86,6 +84,12 @@
     </div>
 
     <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/init.js"></script>
+
+    <script src="/js/dashboard-api.js"></script>
     <script src="/js/dashboard.js"></script>
+    
+
 </body>
 </html>
