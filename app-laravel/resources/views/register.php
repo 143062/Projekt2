@@ -34,7 +34,10 @@
         </div>
     </div>
 
-    <!-- Dodajemy skrypt do obsługi AJAX -->
+    <!-- Podpięcie globalnych skryptów -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/init.js"></script>
+    
     <script src="/js/register.js"></script>
 </body>
 </html>

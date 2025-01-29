@@ -33,6 +33,10 @@
         </div>
     </div>
 
+    <!-- Podpięcie globalnych skryptów -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/init.js"></script>
+    
     <script src="/js/login.js"></script>
 </body>
 </html>
