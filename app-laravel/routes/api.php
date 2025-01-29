@@ -19,19 +19,22 @@ Route::prefix('auth')->group(function () {
     Route::delete('/logout', [AuthControllerAPI::class, 'logout']); // Poprawione na DELETE
 });
 
-//  ZACHOWANE ORYGINALNE TRASY DLA UŻYTKOWNIKÓW
+// Trasy dla użytkowników
 Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserControllerAPI::class, 'index']);             // Pobieranie listy użytkowników
     Route::get('/me', [UserControllerAPI::class, 'getProfile']);      // Pobieranie profilu zalogowanego użytkownika
     Route::get('/dashboard', [UserControllerAPI::class, 'getDashboard']); // Wyświetlanie dashboardu użytkownika
     Route::put('/me', [UserControllerAPI::class, 'updateProfile']);   // Aktualizacja profilu
     Route::post('/me/profile-picture', [UserControllerAPI::class, 'updateProfilePicture']); // Aktualizacja zdjęcia profilowego
+    
+    // 🔗 Trasa do pobierania zdjęcia profilowego przez API
+    Route::get('/me/profile-picture', [UserControllerAPI::class, 'getProfilePicture']);
 });
 
 // Trasy dla znajomych
 Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [FriendControllerAPI::class, 'index']); // Pobieranie listy znajomych
-    Route::post('/', [FriendControllerAPI::class, 'store']); // Poprawione: zamiast '/add' teraz '/'
+    Route::post('/', [FriendControllerAPI::class, 'store']); // Dodanie znajomego
     Route::delete('/{id}', [FriendControllerAPI::class, 'destroy']); // Usuwanie znajomego
 });
 
@@ -39,8 +42,8 @@ Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
 Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [NoteControllerAPI::class, 'index']); // Pobieranie listy notatek
     Route::post('/', [NoteControllerAPI::class, 'store']); // Tworzenie notatki
-    Route::get('/{id}', [NoteControllerAPI::class, 'show']); // Pobieranie pojedynczej notatki (poprawione)
-    Route::put('/{id}', [NoteControllerAPI::class, 'storeOrUpdate']); // Edycja notatki (zamiast update)
+    Route::get('/{id}', [NoteControllerAPI::class, 'show']); // Pobieranie pojedynczej notatki
+    Route::put('/{id}', [NoteControllerAPI::class, 'storeOrUpdate']); // Edycja notatki
     Route::delete('/{id}', [NoteControllerAPI::class, 'destroy']); // Usuwanie notatki
     Route::post('/{id}/share', [NoteControllerAPI::class, 'share']); // Udostępnianie notatki
     Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']);

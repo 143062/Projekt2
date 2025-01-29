@@ -9,18 +9,21 @@ window.loadUserProfile = function () {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            document.getElementById('profile-picture').src = data.data.profile_picture 
-                ? '/' + data.data.profile_picture 
-                : '/img/default_profile_picture.png';
+            const profilePicture = data.data.profile_picture || '/img/profile/default/default_profile_picture.jpg';
+            document.getElementById('profile-picture').src = profilePicture;
             document.getElementById('profile-name').textContent = data.data.login;
         } else {
             console.error('Błąd pobierania profilu:', data.message);
+            document.getElementById('profile-picture').src = '/img/profile/default/default_profile_picture.jpg';
         }
     })
     .catch(error => {
         console.error('Błąd podczas ładowania profilu:', error);
+        document.getElementById('profile-picture').src = '/img/profile/default/default_profile_picture.jpg';
     });
 };
+
+
 
 window.updateProfilePicture = function (formData) {
     fetch('/api/users/me/profile-picture', {
@@ -33,17 +36,16 @@ window.updateProfilePicture = function (formData) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            document.getElementById('profile-picture').src = '/' + data.path + '?' + new Date().getTime();
+            document.getElementById('profile-picture').src = data.path + '?' + new Date().getTime();
             document.getElementById('profile-form-modal').style.display = 'none';
             document.getElementById('file-input').value = ''; 
         } else {
-            console.error('Wystąpił problem z aktualizacją zdjęcia:', data.message);
+            console.error('Błąd zmiany zdjęcia:', data.message);
         }
     })
-    .catch(error => {
-        console.error('Błąd podczas zmiany zdjęcia profilowego:', error);
-    });
+    .catch(error => console.error('Błąd podczas zmiany zdjęcia:', error));
 };
+
 
 window.loadFriendsFromAPI = function () {
     fetch('/api/friends', {
@@ -61,7 +63,7 @@ window.loadFriendsFromAPI = function () {
 };
 
 window.addFriendToAPI = function (friendLogin) {
-    fetch('/api/friends', { // ✅ POPRAWIONY ENDPOINT
+    fetch('/api/friends', { 
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${Auth.getToken()}`,
@@ -80,9 +82,7 @@ window.addFriendToAPI = function (friendLogin) {
     .catch(error => console.error('Błąd podczas dodawania znajomego:', error));
 };
 
-
 window.removeFriendFromAPI = function (friendLogin) {
-    // Najpierw pobierz listę znajomych i znajdź ID użytkownika
     fetch('/api/friends', {
         method: 'GET',
         headers: {
@@ -92,15 +92,13 @@ window.removeFriendFromAPI = function (friendLogin) {
     })
     .then(response => response.json())
     .then(friends => {
-        // Znajdź użytkownika o podanym loginie
         const friend = friends.find(f => f.login === friendLogin);
         if (!friend) {
             console.error('Błąd: Nie znaleziono znajomego o podanym loginie.');
             return;
         }
 
-        // Wykonaj żądanie usunięcia znajomego na podstawie ID
-        fetch('/api/friends/' + friend.id, { // ❗ Używamy ID zamiast loginu
+        fetch('/api/friends/' + friend.id, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${Auth.getToken()}`,

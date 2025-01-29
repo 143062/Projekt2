@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Note;
 use App\Models\Role;
 
+use Illuminate\Support\Facades\Storage;
+
 class UserControllerAPI extends Controller
 {
     /**
@@ -17,14 +19,24 @@ class UserControllerAPI extends Controller
      */
     public function getProfile(Request $request)
     {
-        $user = $request->user(); // Pobranie zalogowanego użytkownika
-
-        if ($user && $user->profile_picture) {
-            $user->profile_picture = str_replace('public/', '', $user->profile_picture);
-        }
-
-        return response()->json(['status' => 'success', 'data' => $user], 200);
+        $user = $request->user();
+    
+        // Ustawienie domyślnego zdjęcia, jeśli użytkownik go nie ma
+        $profilePicture = $user->profile_picture && file_exists(public_path($user->profile_picture)) 
+            ? asset($user->profile_picture) 
+            : asset('img/profile/default/default_profile_picture.jpg');
+    
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $user->id,
+                'login' => $user->login,
+                'email' => $user->email,
+                'profile_picture' => $profilePicture
+            ]
+        ]);
     }
+    
 
     /**
      * Wyświetlanie dashboardu użytkownika (notatki i współdzielone notatki).
@@ -137,28 +149,58 @@ class UserControllerAPI extends Controller
 
     /**
      * Aktualizacja zdjęcia profilowego użytkownika.
-     * Endpoint: POST /api/users/me/profile-picture
      */
     public function updateProfilePicture(Request $request)
     {
-        $user = $request->user(); // Pobranie zalogowanego użytkownika
-
+        $user = $request->user();
+    
+        // Walidacja pliku
         if (!$request->hasFile('profile_picture') || !$request->file('profile_picture')->isValid()) {
             return response()->json(['status' => 'error', 'message' => 'Nie przesłano pliku lub plik jest nieprawidłowy.'], 400);
         }
-
+    
         $file = $request->file('profile_picture');
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-
+    
         if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
             return response()->json(['status' => 'error', 'message' => 'Nieprawidłowy format pliku.'], 400);
         }
-
-        $fileName = $user->id . '_profile.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('profiles', $fileName, 'public');
-
-        $user->update(['profile_picture' => $path]);
-
-        return response()->json(['status' => 'success', 'message' => 'Zdjęcie profilowe zaktualizowane pomyślnie.', 'path' => $path], 200);
+    
+        // Ścieżka zapisu zdjęcia
+        $directory = public_path("img/profile/{$user->id}");
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true);
+        }
+    
+        // Nazwa pliku
+        $fileName = "profile.jpg";
+        $filePath = "img/profile/{$user->id}/{$fileName}";
+    
+        // Usunięcie starego zdjęcia, jeśli istnieje
+        if ($user->profile_picture && file_exists(public_path($user->profile_picture))) {
+            @unlink(public_path($user->profile_picture));
+        }
+    
+        // Przeniesienie nowego pliku
+        try {
+            $file->move($directory, $fileName);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Błąd zapisu pliku.'], 500);
+        }
+    
+        // Aktualizacja w bazie danych
+        $user->update(['profile_picture' => $filePath]);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Zdjęcie profilowe zaktualizowane pomyślnie.',
+            'path' => asset($filePath)
+        ]);
     }
+    
+    
+    
+    
+
+
 }

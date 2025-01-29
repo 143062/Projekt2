@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('email', 255)->unique(); // Adres e-mail, unikalny
             $table->string('password', 255); // Hasło użytkownika
             $table->string('profile_picture', 255)
-                  ->default('public/img/profile/default/default_profile_picture.jpg'); // Domyślne zdjęcie profilowe
+                  ->default('img/profile/default/default_profile_picture.jpg'); // Domyślne zdjęcie profilowe
             $table->uuid('role_id')->nullable(); // Klucz obcy do tabeli Roles
             $table->timestamps(); // Automatyczne kolumny "created_at" i "updated_at"
 
