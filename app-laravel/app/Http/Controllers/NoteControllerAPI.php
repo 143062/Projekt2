@@ -28,49 +28,70 @@ class NoteControllerAPI extends Controller
     }
 
     /**
+     * Tworzenie nowej notatki (alias dla storeOrUpdate).
+     */
+    public function store(Request $request)
+    {
+        return $this->storeOrUpdate($request);
+    }
+
+    /**
      * Tworzenie lub edycja notatki.
      */
-    public function storeOrUpdate(Request $request, $id = null)
-    {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-        ]);
+/**
+ * Tworzenie lub edycja notatki.
+ */
+public function storeOrUpdate(Request $request, $id = null)
+{
+    $validatedData = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+    ]);
 
-        try {
-            $user = $request->user();
+    try {
+        $user = $request->user();
 
-            if ($id) {
-                $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
-                $note->update([
-                    'title' => $validatedData['title'],
-                    'content' => $validatedData['content'],
-                ]);
-            } else {
-                $note = Note::create([
-                    'user_id' => $user->id,
-                    'title' => $validatedData['title'],
-                    'content' => $validatedData['content'],
-                ]);
-            }
-
-            if ($request->has('shared_with')) {
-                SharedNote::where('note_id', $note->id)->delete();
-                foreach ($request->input('shared_with') as $friendId) {
-                    SharedNote::create([
-                        'note_id' => $note->id,
-                        'user_id' => $friendId,
-                    ]);
-                }
-            }
-
-            $message = $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.';
-            return response()->json(['status' => 'success', 'message' => $message, 'note_id' => $note->id]);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas tworzenia/edycji notatki', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
+        if ($id) {
+            $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+            $note->update([
+                'title' => $validatedData['title'],
+                'content' => $validatedData['content'],
+            ]);
+        } else {
+            // Tworzenie nowej notatki i przypisanie jej do zmiennej
+            $note = Note::create([
+                'user_id' => $user->id,
+                'title' => $validatedData['title'],
+                'content' => $validatedData['content'],
+            ]);
         }
+
+        // Logujemy ID notatki
+        Log::info('Nowa notatka zapisana w bazie', ['note_id' => $note->id]);
+
+        if ($request->has('shared_with')) {
+            SharedNote::where('note_id', $note->id)->delete();
+            foreach ($request->input('shared_with') as $friendId) {
+                SharedNote::create([
+                    'note_id' => $note->id,
+                    'user_id' => $friendId,
+                ]);
+            }
+        }
+
+        $message = $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.';
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'note_id' => $note->id, 
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Błąd podczas tworzenia/edycji notatki', ['error' => $e->getMessage()]);
+        return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
     }
+}
+
 
     /**
      * Usuwanie notatki.

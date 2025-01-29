@@ -39,7 +39,7 @@ Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
 Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [NoteControllerAPI::class, 'index']); // Pobieranie listy notatek
     Route::post('/', [NoteControllerAPI::class, 'store']); // Tworzenie notatki
-    Route::put('/{id}', [NoteControllerAPI::class, 'update']); // Edycja notatki
+    Route::put('/{id}', [NoteControllerAPI::class, 'storeOrUpdate']); // Edycja notatki (zamiast update)
     Route::delete('/{id}', [NoteControllerAPI::class, 'destroy']); // Usuwanie notatki
     Route::post('/{id}/share', [NoteControllerAPI::class, 'share']); // Udostępnianie notatki
     Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']);

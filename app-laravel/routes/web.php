@@ -19,3 +19,5 @@ Route::get('/test-db', function () {
 
 // Domyślna strona startowa
 Route::get('/', fn() => redirect('/login'));
+
+Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');

@@ -54,102 +54,93 @@ document.addEventListener('DOMContentLoaded', function () {
         modalNoteTitle.dataset.id = '';  // Resetowanie ID w przypadku nowej notatki
     });
 
-    // Zapisanie notatki (nowej lub edytowanej)
-    saveNoteButton.addEventListener('click', function () {
-        const title = noteTitle.value.trim();
-        const content = noteContent.value.trim();
-    
-        if (title === '' && content === '') {
-            console.error('[dashboard.js] Nie można dodać pustej notatki');
-            return;
-        }
-    
-        const noteData = {
-            title: title,
-            content: content,
-            shared_with: friends.map(friend => friend.id)
-        };
-    
-        const noteId = modalNoteTitle.dataset.id;
-        if (noteId) {
-            noteData.id = noteId;
-        }
-    
-        console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
-    
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content'); // Pobranie tokena CSRF
-    
-        fetch('/add_note', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken // Dodanie tokena CSRF do nagłówków
-            },
-            body: JSON.stringify(noteData)
-        })
-        .then(response => response.text())
-        .then(text => {
-            console.log("[dashboard.js] Surowa odpowiedź z serwera:", text);
-    
-            try {
-                const data = JSON.parse(text);
-                console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", data);
-    
-                if (data.success) {
-                    noteFormContainer.style.display = 'none';
-    
-                    if (!noteData.id) {  // Nowa notatka
-                        const noteIndex = document.querySelectorAll('.note-card').length;
-                        const noteCard = document.createElement('div');
-                        noteCard.className = 'note-card';
-                        noteCard.setAttribute('data-index', noteIndex);
-                        noteCard.setAttribute('data-id', data.id);
-    
-                        noteCard.innerHTML = `
-                            <h3>${title}</h3>
-                            <p>${content}</p>
-                        `;
-                        noteCard.addEventListener('click', function () {
-                            showNoteModal(noteCard, noteIndex);
-                        });
-    
-                        myNotesContainer.appendChild(noteCard);
-    
-                        const noNotesMessage = document.querySelector('#my-notes p');
-                        if (noNotesMessage) {
-                            noNotesMessage.style.display = 'none';
-                        }
-    
-                        truncateText(noteCard);
-    
-                    } else {  // Edytowana notatka
-                        const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
-                        if (noteCard) {
-                            noteCard.querySelector('h3').textContent = title;
-                            noteCard.querySelector('p').textContent = content;
-                            truncateText(noteCard);
-                        } else {
-                            console.error(`[dashboard.js] Nie znaleziono notatki o indexie: ${editingNoteIndex}`);
-                        }
-                    }
-    
-                    noteTitle.value = '';
-                    noteContent.value = '';
-                    sharedWithContainer.innerHTML = '';
-                    friends = [];
-                    editingNoteIndex = -1;
-                    modalNoteTitle.dataset.id = '';
-                } else {
-                    console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", data.message);
+// Zapisanie notatki (nowej lub edytowanej)
+saveNoteButton.addEventListener('click', function () {
+    const title = noteTitle.value.trim();
+    const content = noteContent.value.trim();
+
+    if (title === '' && content === '') {
+        console.error('[dashboard.js] Nie można dodać pustej notatki');
+        return;
+    }
+
+    const noteData = {
+        title: title,
+        content: content,
+        shared_with: friends.map(friend => friend.id)
+    };
+
+    const noteId = modalNoteTitle.dataset.id;
+    const method = noteId ? 'PUT' : 'POST';
+    const endpoint = noteId ? `/api/notes/${noteId}` : '/api/notes';
+
+    console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
+
+    fetch(endpoint, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify(noteData)
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+        console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", body);
+
+        if (status >= 200 && status < 300) {
+            noteFormContainer.style.display = 'none';
+
+            if (!noteId) {  // Nowa notatka
+                const noteIndex = document.querySelectorAll('.note-card').length;
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card';
+                noteCard.setAttribute('data-index', noteIndex);
+                noteCard.setAttribute('data-id', body.id);
+
+                noteCard.innerHTML = `
+                    <h3>${title}</h3>
+                    <p>${content}</p>
+                `;
+                noteCard.addEventListener('click', function () {
+                    showNoteModal(noteCard, noteIndex);
+                });
+
+                myNotesContainer.appendChild(noteCard);
+
+                const noNotesMessage = document.querySelector('#my-notes p');
+                if (noNotesMessage) {
+                    noNotesMessage.style.display = 'none';
                 }
-            } catch (error) {
-                console.error("[dashboard.js] Błąd parsowania JSON:", error, "Surowa odpowiedź:", text);
+
+                truncateText(noteCard);
+
+            } else {  // Edytowana notatka
+                const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
+                if (noteCard) {
+                    noteCard.querySelector('h3').textContent = title;
+                    noteCard.querySelector('p').textContent = content;
+                    truncateText(noteCard);
+                } else {
+                    console.error(`[dashboard.js] Nie znaleziono notatki o indexie: ${editingNoteIndex}`);
+                }
             }
-        })
-        .catch(error => {
-            console.error('[dashboard.js] Błąd podczas dodawania notatki:', error);
-        });
+
+            noteTitle.value = '';
+            noteContent.value = '';
+            sharedWithContainer.innerHTML = '';
+            friends = [];
+            editingNoteIndex = -1;
+            modalNoteTitle.dataset.id = '';
+        } else {
+            console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", body.message);
+        }
+    })
+    .catch(error => {
+        console.error('[dashboard.js] Błąd podczas dodawania notatki:', error);
     });
+});
+
     
 
     // Ukrywanie formularza po kliknięciu poza nim
@@ -159,33 +150,47 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Dodawanie znajomych do udostępniania notatki
-    addFriendButton.addEventListener('click', function () {
-        fetch('/friends')
-            .then(response => response.json())
-            .then(data => {
-                friendsListContainer.innerHTML = '';
+// Dodawanie znajomych do udostępniania notatki
+addFriendButton.addEventListener('click', function () {
+    const authToken = localStorage.getItem('auth_token'); // Pobranie tokena użytkownika
 
-                data.forEach(friend => {
-                    const isSelected = friends.some(f => f.id === friend.id);
-                    const friendItem = document.createElement('div');
-                    friendItem.className = `friend-item ${isSelected ? 'selected' : ''}`;
-                    friendItem.innerHTML = `
-                        <img src="${friend.profile_picture}" alt="${friend.login}">
-                        <span>${friend.login}</span>
-                    `;
-                    friendItem.addEventListener('click', function () {
-                        toggleFriendSelection(friendItem, friend);
-                    });
-                    friendsListContainer.appendChild(friendItem);
-                });
+    fetch('/api/friends', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${authToken}`, // Użycie tokena do autoryzacji
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Błąd HTTP! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        friendsListContainer.innerHTML = '';
 
-                shareNoteModalContainer.style.display = 'flex';
-            })
-            .catch(error => {
-                console.error('Błąd podczas ładowania znajomych:', error);
+        data.forEach(friend => {
+            const isSelected = friends.some(f => f.id === friend.id);
+            const friendItem = document.createElement('div');
+            friendItem.className = `friend-item ${isSelected ? 'selected' : ''}`;
+            friendItem.innerHTML = `
+                <img src="${friend.profile_picture}" alt="${friend.login}">
+                <span>${friend.login}</span>
+            `;
+            friendItem.addEventListener('click', function () {
+                toggleFriendSelection(friendItem, friend);
             });
+            friendsListContainer.appendChild(friendItem);
+        });
+
+        shareNoteModalContainer.style.display = 'flex';
+    })
+    .catch(error => {
+        console.error('Błąd podczas ładowania znajomych:', error);
     });
+});
+
 
     // Przełączanie wyboru znajomego
     function toggleFriendSelection(friendItem, friend) {
@@ -247,53 +252,67 @@ document.addEventListener('DOMContentLoaded', function () {
     
     
 
-    // Wyświetlenie modala notatki
-    function showNoteModal(noteCard, index) {
-        const noteId = noteCard.getAttribute('data-id');
-        const isShared = noteCard.getAttribute('data-shared') === 'true';
+// Wyświetlenie modala notatki
+function showNoteModal(noteCard, index) {
+    const noteId = noteCard.getAttribute('data-id');
+    const isShared = noteCard.getAttribute('data-shared') === 'true';
 
-        editingNoteIndex = index;
+    editingNoteIndex = index;
 
-        fetch(`/get_note?id=${noteId}`)
-            .then(response => response.json())
-            .then(data => {
-                modalNoteTitle.textContent = data.note.title;
-                modalNoteTitle.dataset.id = noteId;
-                modalNoteContent.textContent = data.note.content;
+    // Pobranie tokena z localStorage
+    const authToken = localStorage.getItem('auth_token');
 
-                friends = data.sharedUsers || [];
-                updateSharedWith();
+    fetch(`/api/notes/${noteId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${authToken}`, // Uwierzytelnienie
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Błąd pobierania notatki: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        modalNoteTitle.textContent = data.title;
+        modalNoteTitle.dataset.id = noteId;
+        modalNoteContent.textContent = data.content;
 
-                if (isShared) {
-                    // Tryb podglądu - brak bluru i brak przycisków edycji
-                    editNoteButton.style.display = 'none';
-                    deleteNoteButton.style.display = 'none';
-                    modalSharedWithContainer.innerHTML = '';        
-                } else {
-                    // Tryb edycji - blur i przyciski edycji
-                    editNoteButton.style.display = 'inline-block';
-                    deleteNoteButton.style.display = 'inline-block';
+        friends = data.shared_with || [];
+        updateSharedWith();
 
-                    modalSharedWithContainer.innerHTML = '';
+        if (isShared) {
+            // Tryb podglądu - brak edycji
+            editNoteButton.style.display = 'none';
+            deleteNoteButton.style.display = 'none';
+            modalSharedWithContainer.innerHTML = '';        
+        } else {
+            // Tryb edycji - pokazuje edycję i przyciski
+            editNoteButton.style.display = 'inline-block';
+            deleteNoteButton.style.display = 'inline-block';
+            modalSharedWithContainer.innerHTML = '';
 
-                    friends.forEach(friend => {
-                        const friendDiv = document.createElement('div');
-                        friendDiv.className = 'friend'; 
-                        friendDiv.innerHTML = `
-                            <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
-                            <span>${friend.login}</span>
-
-                        `;
-                        modalSharedWithContainer.appendChild(friendDiv);
-                    });
-                }
-
-                noteModalContainer.style.display = 'flex';
-            })
-            .catch(error => {
-                console.error('[dashboard.js] Błąd podczas ładowania notatki:', error);
+            friends.forEach(friend => {
+                const friendDiv = document.createElement('div');
+                friendDiv.className = 'friend'; 
+                friendDiv.innerHTML = `
+                    <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
+                    <span>${friend.login}</span>
+                `;
+                modalSharedWithContainer.appendChild(friendDiv);
             });
-    }
+        }
+
+        noteModalContainer.style.display = 'flex';
+    })
+    .catch(error => {
+        console.error('[dashboard.js] Błąd podczas ładowania notatki:', error);
+        alert('Nie udało się pobrać notatki.');
+    });
+}
+
 
     // Ukrywanie modala notatki
     noteModalContainer.addEventListener('click', function (event) {
@@ -302,57 +321,51 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Usuwanie notatki
-    deleteNoteButton.addEventListener('click', function () {
-        const noteId = modalNoteTitle.dataset.id;
-    
-        if (!noteId) {
-            console.error('Brak ID notatki do usunięcia');
-            return;
+// Usuwanie notatki
+deleteNoteButton.addEventListener('click', function () {
+    const noteId = modalNoteTitle.dataset.id;
+
+    if (!noteId) {
+        console.error('Brak ID notatki do usunięcia');
+        return;
+    }
+
+    // Zamknij modal przed usunięciem
+    noteModalContainer.style.display = 'none';
+
+    // Pobranie tokena z localStorage
+    const authToken = localStorage.getItem('auth_token');
+    if (!authToken) {
+        console.error('Brak tokena uwierzytelniającego');
+        alert('Nie można wykonać żądania: brak tokena autoryzacji.');
+        return;
+    }
+
+    fetch(`/api/notes/${noteId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${authToken}`
         }
-    
-        // Zamknij modal przed usunięciem
-        noteModalContainer.style.display = 'none';
-    
-        const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
-        const csrfToken = csrfMetaTag ? csrfMetaTag.getAttribute('content') : null;
-    
-        if (!csrfToken) {
-            console.error('Brak tokena CSRF w meta-tag');
-            alert('Nie można wykonać żądania: brak tokena CSRF.');
-            return;
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    
-        fetch('/delete_note', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({ id: noteId }),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                console.log('Notatka została usunięta:', data);
-    
-                const noteCard = document.querySelector(`.note-card[data-id="${noteId}"]`);
-                if (noteCard) {
-                    noteCard.remove();
-                }
-            } else {
-                console.error('Błąd podczas usuwania notatki:', data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Błąd podczas komunikacji z serwerem:', error.message);
-        });
+        return response.json();
+    })
+    .then(data => {
+        console.log('Notatka została usunięta:', data);
+
+        const noteCard = document.querySelector(`.note-card[data-id="${noteId}"]`);
+        if (noteCard) {
+            noteCard.remove();
+        }
+    })
+    .catch(error => {
+        console.error('Błąd podczas komunikacji z serwerem:', error.message);
     });
+});
+
     
     
 

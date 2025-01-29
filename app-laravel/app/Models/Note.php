@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Note extends Model
 {
     use HasFactory;
 
     // Wypełnialne kolumny
-    protected $fillable = ['user_id', 'title', 'content'];
+    protected $fillable = ['id', 'user_id', 'title', 'content'];
 
     // Klucz główny to UUID
     protected $keyType = 'string';
@@ -18,6 +19,20 @@ class Note extends Model
 
     // Timestampy
     public $timestamps = true;
+
+    /**
+     * Automatyczne generowanie UUID przy tworzeniu nowej notatki.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($note) {
+            if (empty($note->{$note->getKeyName()})) {
+                $note->{$note->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
 
     // Relacja: notatka należy do użytkownika
     public function user()

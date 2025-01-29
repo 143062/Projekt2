@@ -1,8 +1,5 @@
 <div id="note-form-container" class="note-form-container">
     <div class="note-form">
-        <!-- Token CSRF -->
-        <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
-
         <input type="text" id="note-title" class="note-title" name="title" placeholder="Tytuł">
         <div class="share-section">
             <div id="shared-with" class="shared-with"></div>
