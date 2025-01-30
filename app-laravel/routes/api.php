@@ -9,48 +9,46 @@ use App\Http\Controllers\NoteControllerAPI;
 use App\Http\Controllers\TestControllerAPI;
 use App\Http\Controllers\UserControllerAPI;
 
-// Trasa testowa
+// 🔹 Trasa testowa
 Route::get('/ping', fn() => response()->json(['message' => 'API działa!']));
 
-// Trasy dla autoryzacji
+// 🔹 Trasy dla autoryzacji
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthControllerAPI::class, 'register']);
     Route::post('/login', [AuthControllerAPI::class, 'login']);
-    Route::delete('/logout', [AuthControllerAPI::class, 'logout']); // Poprawione na DELETE
+    Route::delete('/logout', [AuthControllerAPI::class, 'logout']); //  Poprawione na DELETE
 });
 
-// Trasy dla użytkowników
+// 🔹 Trasy dla użytkowników
 Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserControllerAPI::class, 'index']);             // Pobieranie listy użytkowników
     Route::get('/me', [UserControllerAPI::class, 'getProfile']);      // Pobieranie profilu zalogowanego użytkownika
-    Route::get('/dashboard', [UserControllerAPI::class, 'getDashboard']); // Wyświetlanie dashboardu użytkownika
+    Route::get('/dashboard', [UserControllerAPI::class, 'getDashboard']); // Pobieranie danych dashboardu
     Route::put('/me', [UserControllerAPI::class, 'updateProfile']);   // Aktualizacja profilu
     Route::post('/me/profile-picture', [UserControllerAPI::class, 'updateProfilePicture']); // Aktualizacja zdjęcia profilowego
-    
-    // 🔗 Trasa do pobierania zdjęcia profilowego przez API
-    Route::get('/me/profile-picture', [UserControllerAPI::class, 'getProfilePicture']);
+    Route::get('/me/profile-picture', [UserControllerAPI::class, 'getProfilePicture']); // Pobieranie zdjęcia profilowego
 });
 
-// Trasy dla znajomych
+// 🔹 Trasy dla znajomych
 Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [FriendControllerAPI::class, 'index']); // Pobieranie listy znajomych
-    Route::post('/', [FriendControllerAPI::class, 'store']); // Dodanie znajomego
+    Route::get('/', [FriendControllerAPI::class, 'index']);   // Pobieranie listy znajomych
+    Route::post('/', [FriendControllerAPI::class, 'store']);  // Dodanie znajomego
     Route::delete('/{id}', [FriendControllerAPI::class, 'destroy']); // Usuwanie znajomego
 });
 
-// Trasy dla notatek
+// 🔹 Trasy dla notatek (REST API)
 Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [NoteControllerAPI::class, 'index']); // Pobieranie listy notatek
-    Route::post('/', [NoteControllerAPI::class, 'store']); // Tworzenie notatki
-    Route::get('/{id}', [NoteControllerAPI::class, 'show']); // Pobieranie pojedynczej notatki
+    Route::get('/', [NoteControllerAPI::class, 'index']);      // Pobieranie listy notatek
+    Route::post('/', [NoteControllerAPI::class, 'store']);     // Tworzenie nowej notatki
+    Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']); //  Trasa dla współdzielonych notatek (poprawione!)
+    Route::get('/{id}', [NoteControllerAPI::class, 'show']);   // Pobieranie pojedynczej notatki
     Route::put('/{id}', [NoteControllerAPI::class, 'storeOrUpdate']); // Edycja notatki
-    Route::delete('/{id}', [NoteControllerAPI::class, 'destroy']); // Usuwanie notatki
-    Route::post('/{id}/share', [NoteControllerAPI::class, 'share']); // Udostępnianie notatki
-    Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']);
-    Route::get('/{id}/shared-users', [NoteControllerAPI::class, 'getSharedUsersByNoteId']);
+    Route::delete('/{id}', [NoteControllerAPI::class, 'destroy']);    // Usuwanie notatki
+    Route::post('/{id}/share', [NoteControllerAPI::class, 'share']);  // Udostępnianie notatki
+    Route::get('/{id}/shared-users', [NoteControllerAPI::class, 'getSharedUsersByNoteId']); // Pobieranie użytkowników współdzielących notatkę
 });
 
-// Trasy administracyjne
+// 🔹 Trasy administracyjne
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/users', [AdminControllerAPI::class, 'getUsers']); 
     Route::post('/users', [AdminControllerAPI::class, 'addUser']);
@@ -59,7 +57,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/sql-import', [AdminControllerAPI::class, 'importDatabase']);
 });
 
-// Trasy testowe
+// 🔹 Trasy testowe
 Route::prefix('test')->group(function () {
     Route::get('/', [TestControllerAPI::class, 'index']);
 });

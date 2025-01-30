@@ -39,26 +39,22 @@
 
             <!-- Shared Notes Section -->
             <div class="shared-notes-section">
-                <h2>
-                    Współdzielone notatki 
-                    <span class="toggle-button" data-section="shared-notes"> 
-                        <span class="material-symbols-outlined">hide</span>
-                    </span>
-                </h2>
-                <div class="notes-container" id="shared-notes">
-                    <?php if (!empty($sharedNotes)): ?>
-                        <?php foreach ($sharedNotes as $index => $sharedNote): ?>
-                            <div class="note-card shared" data-id="<?php echo htmlspecialchars($sharedNote->id); ?>" data-index="<?php echo $index; ?>">
-                                <h3><?php echo htmlspecialchars($sharedNote->title); ?></h3>
-                                <p><?php echo htmlspecialchars($sharedNote->content); ?></p>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>Brak współdzielonych notatek do wyświetlenia.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+    <h2>
+        Współdzielone notatki 
+        <span class="toggle-button" data-section="shared-notes"> 
+            <span class="material-symbols-outlined">hide</span>
+        </span>
+    </h2>
+    <div class="notes-container" id="shared-notes">
+        <p>Ładowanie współdzielonych notatek...</p>
+    </div>
+</div>
+
+
+
+                            
+
+
 
         <!-- Add Note Button -->
         <button id="add-note-button" class="add-note-button">

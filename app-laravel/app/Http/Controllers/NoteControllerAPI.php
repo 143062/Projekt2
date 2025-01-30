@@ -66,11 +66,14 @@ public function storeOrUpdate(Request $request, $id = null)
             ]);
         }
 
-        // Logujemy ID notatki
+        // 📌 Logujemy ID nowej notatki
         Log::info('Nowa notatka zapisana w bazie', ['note_id' => $note->id]);
 
+        // 📌 Czy obsługa udostępniania działa?
         if ($request->has('shared_with')) {
-            SharedNote::where('note_id', $note->id)->delete();
+            Log::info("Udostępnianie notatki", ['note_id' => $note->id, 'shared_with' => $request->input('shared_with')]);
+            
+            SharedNote::where('note_id', $note->id)->delete(); // Usunięcie starych wpisów
             foreach ($request->input('shared_with') as $friendId) {
                 SharedNote::create([
                     'note_id' => $note->id,
@@ -79,11 +82,9 @@ public function storeOrUpdate(Request $request, $id = null)
             }
         }
 
-        $message = $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.';
-        
         return response()->json([
             'status' => 'success',
-            'message' => $message,
+            'message' => $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.',
             'note_id' => $note->id, 
         ]);
     } catch (\Exception $e) {
@@ -91,6 +92,7 @@ public function storeOrUpdate(Request $request, $id = null)
         return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
     }
 }
+
 
 
     /**
@@ -118,27 +120,38 @@ public function storeOrUpdate(Request $request, $id = null)
      */
     public function share(Request $request, $id)
     {
+        Log::info('Udostępnianie notatki', [
+            'note_id' => $id,
+            'shared_with' => $request->input('shared_with')
+        ]);
+    
         $validatedData = $request->validate([
             'shared_with' => 'required|array',
             'shared_with.*' => 'uuid|exists:users,id',
         ]);
-
+    
         try {
-            SharedNote::where('note_id', $id)->delete();
-
+            SharedNote::where('note_id', $id)->delete(); // Usunięcie starych wpisów
+    
             foreach ($validatedData['shared_with'] as $userId) {
                 SharedNote::create([
                     'note_id' => $id,
                     'user_id' => $userId,
                 ]);
             }
-
+    
+            Log::info('Notatka została udostępniona poprawnie', [
+                'note_id' => $id,
+                'users' => $validatedData['shared_with']
+            ]);
+    
             return response()->json(['status' => 'success', 'message' => 'Notatka została udostępniona.']);
         } catch (\Exception $e) {
             Log::error('Błąd podczas udostępniania notatki', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
     }
+    
 
     /**
      * Pobieranie współdzielonych notatek.
@@ -147,20 +160,22 @@ public function storeOrUpdate(Request $request, $id = null)
     {
         try {
             $user = $request->user();
-
+    
             $notes = Note::whereHas('sharedWith', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 })
-                ->with('user:id,login')
+                ->with('user:id,login') // Pobieranie właściciela notatki
                 ->orderBy('created_at', 'asc')
                 ->get();
-
+    
+            Log::info('Współdzielone notatki:', ['notes' => $notes]);
+    
             return response()->json($notes->map(function ($note) {
                 return [
                     'id' => $note->id,
                     'title' => $note->title,
                     'content' => $note->content,
-                    'owner_login' => $note->user->login,
+                    'owner_login' => $note->user->login, // Dodanie loginu właściciela
                 ];
             }));
         } catch (\Exception $e) {
@@ -168,6 +183,8 @@ public function storeOrUpdate(Request $request, $id = null)
             return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
     }
+    
+    
 
     /**
      * Pobieranie użytkowników, którym udostępniono notatkę.

@@ -101,6 +101,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+    function fetchSharedNotesFromAPI() {
+        fetch('/api/notes/shared', {
+            method: 'GET',
+            headers: Auth.attachAuthHeaders(),
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(notes => {
+            const sharedNotesContainer = document.getElementById('shared-notes');
+            sharedNotesContainer.innerHTML = ''; // Czyści kontener przed załadowaniem
+    
+            if (!notes || notes.length === 0) {
+                sharedNotesContainer.innerHTML = '<p>Brak współdzielonych notatek do wyświetlenia.</p>';
+                return;
+            }
+    
+            notes.forEach((note, index) => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card shared';
+                noteCard.dataset.id = note.id;
+                noteCard.dataset.index = index;
+                noteCard.innerHTML = `
+                    <h3>${note.title}</h3>
+                    <p>${note.content}</p>
+                    <p class="shared-owner">Udostępnione przez: ${note.owner_login}</p>
+                `;
+                sharedNotesContainer.appendChild(noteCard);
+            });
+        })
+        .catch(error => {
+            console.error('[dashboard.js] Błąd podczas pobierania współdzielonych notatek:', error);
+        });
+    }
+    
+        fetchSharedNotesFromAPI();
 
 
 
