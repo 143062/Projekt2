@@ -190,13 +190,22 @@ window.fetchSharedUsersForNote = function (noteId) {
         headers: getAuthHeaders(),
         credentials: 'include'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Błąd API: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        if (!Array.isArray(data)) {
+            console.error(`[dashboard-api.js] Błąd: API nie zwróciło poprawnej tablicy użytkowników.`, data);
+            return [];
+        }
         console.log(`[dashboard-api.js] Użytkownicy z dostępem do notatki ${noteId}:`, data);
         return data;
     })
     .catch(error => {
         console.error(`[dashboard-api.js] Błąd podczas pobierania użytkowników z dostępem do notatki ${noteId}:`, error);
-        return Promise.reject(error);
+        return [];
     });
 };

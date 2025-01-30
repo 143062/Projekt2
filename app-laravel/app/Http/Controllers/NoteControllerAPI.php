@@ -193,26 +193,31 @@ public function storeOrUpdate(Request $request, $id = null)
     {
         try {
             $user = $request->user();
-
-            $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+    
+            // Sprawdzenie, czy notatka istnieje i należy do użytkownika
+            $note = Note::where('id', $id)->where('user_id', $user->id)->first();
+    
+            if (!$note) {
+                Log::error("Brak dostępu do notatki lub nie istnieje", ['note_id' => $id, 'user_id' => $user->id]);
+                return response()->json(['status' => 'error', 'message' => 'Nie znaleziono notatki lub brak dostępu.'], 404);
+            }
+    
+            // Pobieranie użytkowników, którym udostępniono notatkę
             $sharedUsers = SharedNote::where('note_id', $note->id)
-                ->with('user:id,login,profile_picture')
-                ->get()
-                ->map(function ($sharedNote) {
-                    return [
-                        'id' => $sharedNote->user->id,
-                        'login' => $sharedNote->user->login,
-                        'profile_picture' => str_replace('public/', '', $sharedNote->user->profile_picture),
-                    ];
-                });
-
+                ->join('users', 'shared_notes.user_id', '=', 'users.id')
+                ->select('users.id', 'users.login', 'users.profile_picture')
+                ->get();
+    
+            // Logowanie do sprawdzenia
+            Log::info("Lista użytkowników z dostępem do notatki", ['note_id' => $id, 'users' => $sharedUsers]);
+    
             return response()->json($sharedUsers);
         } catch (\Exception $e) {
             Log::error('Błąd podczas pobierania użytkowników, którym udostępniono notatkę', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
     }
-
+    
 
     public function show(Request $request, $id)
     {

@@ -339,14 +339,17 @@ addFriendButton.addEventListener('click', function () {
             `;
             sharedWithContainer.appendChild(friendDiv);
         });
-
+    
+        document.querySelectorAll('.friend-item').forEach(friendItem => {
+            const userId = friendItem.querySelector('.remove-icon').getAttribute('data-id');
+            if (friends.some(friend => friend.id === userId)) {
+                friendItem.classList.add('selected'); // Oznaczamy jako wybrane
+            }
+        });
+    
         // Dynamiczne ustawianie marginesu dolnego dla .share-section
         const shareSection = document.querySelector('.share-section');
-        if (friends.length === 0) {
-            shareSection.style.marginBottom = '20px';
-        } else {
-            shareSection.style.marginBottom = '0px';
-        }
+        shareSection.style.marginBottom = friends.length === 0 ? '20px' : '0px';
     
         // Usuwanie znajomych z listy udostępnionych
         document.querySelectorAll('.remove-icon').forEach(icon => {
@@ -357,6 +360,7 @@ addFriendButton.addEventListener('click', function () {
             });
         });
     }
+    
     
 
 
@@ -372,8 +376,19 @@ function showNoteModal(noteCard, index) {
         modalNoteTitle.dataset.id = noteId;
         modalNoteContent.textContent = data.content;
 
-        friends = data.shared_with || [];
-        updateSharedWith();
+        friends = []; // Resetujemy listę
+
+        //  Pobieranie użytkowników, którym udostępniono notatkę
+        fetchSharedUsersForNote(noteId).then(sharedUsers => {
+            if (!Array.isArray(sharedUsers)) {
+                console.error(`[dashboard.js] Błąd: Lista użytkowników nie jest tablicą!`, sharedUsers);
+                return;
+            }
+            console.log(`[dashboard.js] Użytkownicy z dostępem do notatki ${noteId}:`, sharedUsers);
+
+            friends = sharedUsers; // Przypisujemy poprawną listę
+            updateSharedWith(); // Aktualizujemy interfejs
+        });
 
         if (isShared) {
             editNoteButton.style.display = 'none';
@@ -398,6 +413,8 @@ function showNoteModal(noteCard, index) {
         noteModalContainer.style.display = 'flex';
     });
 }
+
+
 
 
 
