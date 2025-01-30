@@ -48,13 +48,15 @@ Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
     Route::get('/{id}/shared-users', [NoteControllerAPI::class, 'getSharedUsersByNoteId']); // Pobieranie użytkowników współdzielących notatkę
 });
 
-// 🔹 Trasy administracyjne (tymczasowo dla wszystkich zalogowanych)
+// 🔹 Trasy administracyjne (tylko dla zalogowanych adminów)
 Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/me', [AdminControllerAPI::class, 'getCurrentUser']); // Sprawdzenie aktualnego użytkownika
     Route::get('/users', [AdminControllerAPI::class, 'getUsers']); 
     Route::post('/users', [AdminControllerAPI::class, 'addUser']);
     Route::delete('/users/{id}', [AdminControllerAPI::class, 'deleteUser']);
     Route::get('/sql-dump', [AdminControllerAPI::class, 'exportDatabase']);
     Route::post('/sql-import', [AdminControllerAPI::class, 'importDatabase']);
+    Route::post('/run-tests', [AdminControllerAPI::class, 'runTests']); // Dodano brakującą trasę
 });
 
 // 🔹 Trasy testowe

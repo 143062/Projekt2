@@ -6,7 +6,6 @@
     <title>Admin Panel</title>
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/admin_panel.css">
-    <meta name="csrf-token" content="<?php echo csrf_token(); ?>"> <!-- Dodano token CSRF -->
 </head>
 <body>
     <div class="container">
@@ -18,7 +17,15 @@
             <img src="/img/logo.svg" alt="Logo" class="logo">
         </div>
 
+
+
         <div class="content">
+
+
+
+
+
+
             <!-- Sekcja użytkowników -->
             <div class="table-container">
                 <h2>Użytkownicy</h2>
@@ -26,6 +33,7 @@
                     <img src="/img/search_dark.svg" alt="Szukaj">
                     <input type="text" id="user-search" placeholder="Szukaj...">
                 </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -38,53 +46,34 @@
                         </tr>
                     </thead>
                     <tbody id="user-list">
-                        <?php if (!empty($users)): ?>
-                            <?php foreach ($users as $user): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($user->id); ?></td>
-                                    <td><?php echo htmlspecialchars($user->role); ?></td>
-                                    <td><?php echo htmlspecialchars($user->login); ?></td>
-                                    <td><?php echo htmlspecialchars($user->email); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($user->created_at, 0, 19)); ?></td>
-                                    <td>
-                                        <button type="button" class="reset-password-button button" data-user-id="<?php echo htmlspecialchars($user->id); ?>" data-login="<?php echo htmlspecialchars($user->login); ?>">Hasło</button>
-                                        <form method="post" action="/admin/delete_user" style="display:inline-block;">
-                                            <?php echo csrf_field(); ?> <!-- Dodano token CSRF -->
-                                            <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user->id); ?>">
-                                            <button type="submit" class="delete-button button">Usuń</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6">Brak użytkowników do wyświetlenia.</td>
-                            </tr>
-                        <?php endif; ?>
+                        <tr>
+                            <td colspan="6">Ładowanie użytkowników...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
+
+
             <!-- Sekcja dodawania użytkownika -->
             <div class="form-container">
                 <h2>Dodaj Nowego Użytkownika</h2>
-                <form method="post" action="/admin/add_user">
-                    <?php echo csrf_field(); ?> <!-- Dodano token CSRF -->
+                <form id="add-user-form">
                     <div class="form-group">
                         <label for="username">Login:</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Hasło:</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" required>
                     </div>
                     <div class="form-group">
                         <label for="role">Rola:</label>
-                        <select id="role" name="role" required>
+                        <select id="role" required>
                             <option value="user">Użytkownik</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -93,24 +82,33 @@
                 </form>
             </div>
 
+
+
+            
+
+
+
+
             <!-- Sekcja SQL Dump i Import -->
             <div class="sql-dump-container">
                 <h2>Zarządzanie Bazą Danych</h2>
                 <div id="import-status" class="alert" style="display: none;"></div> <!-- Miejsce na komunikat o sukcesie/błędzie -->
-                <form method="post" action="/admin/sql_dump">
-                    <?php echo csrf_field(); ?> <!-- Dodano token CSRF -->
-                    <button type="submit" class="sql-dump-button">Pobierz SQL Dump</button>
-                </form>
-                <form method="post" action="/admin/sql_import" enctype="multipart/form-data" id="sql-import-form">
-                    <?php echo csrf_field(); ?> <!-- Dodano token CSRF -->
+                
+                <button id="sql-dump-button" class="sql-dump-button">Pobierz SQL Dump</button>
+
+                <form id="sql-import-form">
                     <div class="file-input-container">
                         <label for="sql-file" class="file-input-label">Wybierz plik SQL</label>
-                        <input type="file" id="sql-file" name="sql_file" class="file-input">
+                        <input type="file" id="sql-file" class="file-input">
                         <span class="file-name">Nie wybrano pliku</span>
                     </div>
-                    <button type="submit" class="sql-import-button">Importuj SQL</button>
+                    <button type="submit" id="sql-import-button" class="sql-import-button">Importuj SQL</button>
                 </form>
             </div>
+
+
+
+            
 
             <!-- Nowa sekcja testów jednostkowych -->
             <div class="test-unit-container">
@@ -118,8 +116,19 @@
                 <button id="run-tests-button" class="run-tests-button">Uruchom</button>
                 <pre id="test-results" class="test-results"></pre> <!-- Miejsce na wyniki testów -->
             </div>
+
+
+
+
         </div>
+
+
+        
     </div>
+
+
+
+
 
     <!-- Modal do resetu hasła -->
     <?php include resource_path('views/reset_password_modal.php'); ?>
