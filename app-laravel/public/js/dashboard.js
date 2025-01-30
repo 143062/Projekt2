@@ -335,6 +335,7 @@ addFriendButton.addEventListener('click', function () {
     // TA SEKCJA W RZECZYWISTOSCI ODPOWIADA ZA TEN PRZYCISK
     function updateSharedWith() {
         sharedWithContainer.innerHTML = '';
+    
         friends.forEach(friend => {
             const friendDiv = document.createElement('div');
             friendDiv.className = 'friend-blur';
@@ -347,9 +348,14 @@ addFriendButton.addEventListener('click', function () {
         });
     
         document.querySelectorAll('.friend-item').forEach(friendItem => {
-            const userId = friendItem.querySelector('.remove-icon').getAttribute('data-id');
-            if (friends.some(friend => friend.id === userId)) {
-                friendItem.classList.add('selected'); // Oznaczamy jako wybrane
+            const removeIcon = friendItem.querySelector('.remove-icon');
+            if (removeIcon) {  //  Sprawdzenie czy element istnieje
+                const userId = removeIcon.getAttribute('data-id');
+                if (friends.some(friend => friend.id === userId)) {
+                    friendItem.classList.add('selected'); // Oznaczamy jako wybrane
+                }
+            } else {
+                console.log("Brak .remove-icon, tak wlasciwie ma byc", friendItem);
             }
         });
     
