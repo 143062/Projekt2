@@ -124,6 +124,12 @@
     <!-- Modal do resetu hasła -->
     <?php include resource_path('views/reset_password_modal.php'); ?>
 
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/init.js"></script>
+
+
     <script src="/js/admin_panel.js"></script>
+
 </body>
 </html>

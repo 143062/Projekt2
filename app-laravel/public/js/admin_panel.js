@@ -256,6 +256,22 @@ document.addEventListener('DOMContentLoaded', function() {
     attachDeleteButtonEvents();
     attachPasswordButtonEvents();
 
+
+
+
+
+
+
+
+
+
+/// to poki co pomijamy
+
+
+
+
+
+
     // Uruchomienie testów jednostkowych
     if (runTestsButton) {
         runTestsButton.addEventListener('click', function () {

@@ -19,27 +19,29 @@ document.addEventListener('DOMContentLoaded', function () {
         errorMessage.textContent = message;
     }
 
-    loginButton.addEventListener('click', function () {
-        if (validateForm()) {
-            fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    login_or_email: loginInput.value.trim(),
-                    password: passwordInput.value.trim(),
-                }),
-            })
-            .then(async (response) => {
-                const responseData = await response.json();
-                if (!response.ok) throw new Error(responseData.message || 'Błąd logowania.');
+    function hideError() {
+        errorContainer.style.display = 'none';
+        errorMessage.textContent = '';
+    }
 
-                Auth.setToken(responseData.token);
-                alert('Logowanie zakończone sukcesem!');
-                window.location.href = '/dashboard';
-            })
-            .catch((error) => {
-                showError(error.message);
-            });
+    loginButton.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        if (validateForm()) {
+            hideError();
+
+            Auth.login(
+                loginInput.value.trim(),
+                passwordInput.value.trim(),
+                {
+                    success: function () {
+                        console.log("[login.js] Logowanie zakończone sukcesem!");
+                    },
+                    error: function (message) {
+                        showError(message);
+                    }
+                }
+            );
         }
     });
 });

@@ -19,7 +19,7 @@ Route::prefix('auth')->group(function () {
     Route::delete('/logout', [AuthControllerAPI::class, 'logout']); //  Poprawione na DELETE
 });
 
-// 🔹 Trasy dla użytkowników
+// 🔹 Trasy dla użytkowników (wymagają logowania)
 Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserControllerAPI::class, 'index']);             // Pobieranie listy użytkowników
     Route::get('/me', [UserControllerAPI::class, 'getProfile']);      // Pobieranie profilu zalogowanego użytkownika
@@ -29,18 +29,18 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/me/profile-picture', [UserControllerAPI::class, 'getProfilePicture']); // Pobieranie zdjęcia profilowego
 });
 
-// 🔹 Trasy dla znajomych
+// 🔹 Trasy dla znajomych (wymagają logowania)
 Route::prefix('friends')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [FriendControllerAPI::class, 'index']);   // Pobieranie listy znajomych
     Route::post('/', [FriendControllerAPI::class, 'store']);  // Dodanie znajomego
     Route::delete('/{id}', [FriendControllerAPI::class, 'destroy']); // Usuwanie znajomego
 });
 
-// 🔹 Trasy dla notatek (REST API)
+// 🔹 Trasy dla notatek (wymagają logowania)
 Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [NoteControllerAPI::class, 'index']);      // Pobieranie listy notatek
     Route::post('/', [NoteControllerAPI::class, 'store']);     // Tworzenie nowej notatki
-    Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']); //  Trasa dla współdzielonych notatek (poprawione!)
+    Route::get('/shared', [NoteControllerAPI::class, 'sharedNotes']); //  Trasa dla współdzielonych notatek
     Route::get('/{id}', [NoteControllerAPI::class, 'show']);   // Pobieranie pojedynczej notatki
     Route::put('/{id}', [NoteControllerAPI::class, 'storeOrUpdate']); // Edycja notatki
     Route::delete('/{id}', [NoteControllerAPI::class, 'destroy']);    // Usuwanie notatki
@@ -48,8 +48,8 @@ Route::prefix('notes')->middleware('auth:sanctum')->group(function () {
     Route::get('/{id}/shared-users', [NoteControllerAPI::class, 'getSharedUsersByNoteId']); // Pobieranie użytkowników współdzielących notatkę
 });
 
-// 🔹 Trasy administracyjne
-Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+// 🔹 Trasy administracyjne (tymczasowo dla wszystkich zalogowanych)
+Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [AdminControllerAPI::class, 'getUsers']); 
     Route::post('/users', [AdminControllerAPI::class, 'addUser']);
     Route::delete('/users/{id}', [AdminControllerAPI::class, 'deleteUser']);

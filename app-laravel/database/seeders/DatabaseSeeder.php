@@ -12,12 +12,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Dodawanie ról tylko, jeśli tabela roles jest pusta
+        // Dodawanie ról jako pierwsze, ponieważ inne tabele ich potrzebują
         if (DB::table('roles')->count() === 0) {
             $this->call(RolesSeeder::class);
         }
 
-        // Dodawanie użytkowników tylko, jeśli tabela users jest pusta
+        // Dodawanie administratora – sprawdzamy, czy istnieje
+        $this->call(AdminSeeder::class);
+
+        // Dodawanie użytkowników, jeśli tabela jest pusta
         if (DB::table('users')->count() === 0) {
             $this->call(UsersSeeder::class);
         }

@@ -13,18 +13,16 @@ use Illuminate\Support\Facades\Log;
 class AuthControllerAPI extends Controller
 {
     /**
-     * Register a new user.
+     * Rejestracja nowego użytkownika.
      */
     public function register(Request $request)
     {
-        // Trimowanie danych wejściowych
         $request->merge([
             'login' => trim($request->login),
             'email' => trim($request->email),
             'password' => trim($request->password),
         ]);
 
-        // Validate input data
         $validator = Validator::make($request->all(), [
             'login' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
@@ -36,37 +34,42 @@ class AuthControllerAPI extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        // Sprawdzenie, czy rola 'user' istnieje
+        $userRole = Role::where('name', 'user')->first();
+        if (!$userRole) {
+            Log::error('Nie znaleziono roli "user" w bazie danych');
+            return response()->json([
+                'message' => 'Rola "user" nie została znaleziona w bazie danych.',
+            ], 500);
+        }
+
         try {
-            // Pobierz ID roli 'user' z tabeli roles
-            $userRole = Role::where('name', 'user')->first();
-
-            if (!$userRole) {
-                Log::error('Nie znaleziono roli "user" w bazie danych');
-                return response()->json([
-                    'message' => 'Rola "user" nie została znaleziona w bazie danych.',
-                ], 500);
-            }
-
             // Haszowanie hasła
             $hashedPassword = Hash::make($request->password);
-            // Log::info('Zahashowane hasło przed zapisaniem', ['hashed_password' => $hashedPassword]);
 
-            // Create a new user and przypisz domyślną rolę
+            // Tworzenie użytkownika
             $user = User::create([
                 'login' => $request->login,
                 'email' => $request->email,
-                'password' => $hashedPassword, // Używamy zahashowanego hasła
+                'password' => $hashedPassword,
                 'role_id' => $userRole->id,
             ]);
 
-            // Generate API token
+            // Usunięcie wszystkich starych tokenów i wygenerowanie nowego
+            $user->tokens()->delete();
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Log::info('Rejestracja zakończona sukcesem', ['user_id' => $user->id]);
+            Log::info('Rejestracja zakończona sukcesem', ['user_id' => $user->id]);
+
             return response()->json([
                 'message' => 'Rejestracja zakończona sukcesem',
-                'user' => $user,
                 'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'login' => $user->login,
+                    'email' => $user->email,
+                    'role' => $userRole->name, // Zwracamy nazwę roli użytkownika
+                ],
             ], 201);
         } catch (\Exception $e) {
             Log::error('Błąd podczas rejestracji użytkownika', ['error' => $e->getMessage()]);
@@ -77,19 +80,15 @@ class AuthControllerAPI extends Controller
     }
 
     /**
-     * Log in a user.
+     * Logowanie użytkownika.
      */
     public function login(Request $request)
     {
-        // Trimowanie danych wejściowych
         $request->merge([
             'login_or_email' => trim($request->login_or_email),
             'password' => trim($request->password),
         ]);
 
-        // Log::info('Próba logowania', ['login_or_email' => $request->login_or_email]);
-
-        // Validate login credentials
         $validator = Validator::make($request->all(), [
             'login_or_email' => 'required|string',
             'password' => 'required|string',
@@ -100,37 +99,34 @@ class AuthControllerAPI extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Określ, czy podano login, czy email
+        // Znajdź użytkownika po loginie lub emailu i załaduj jego rolę
         $loginOrEmail = $request->login_or_email;
-        $isEmail = str_contains($loginOrEmail, '@'); // Sprawdzamy obecność "@"
-
-        // Znajdź użytkownika
+        $isEmail = str_contains($loginOrEmail, '@');
         $user = $isEmail
-            ? User::where('email', $loginOrEmail)->first()
-            : User::where('login', $loginOrEmail)->first();
+            ? User::where('email', $loginOrEmail)->with('role')->first()
+            : User::where('login', $loginOrEmail)->with('role')->first();
 
-        if (!$user) {
-            Log::error('Użytkownik nie został znaleziony', ['login_or_email' => $loginOrEmail]);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            Log::error('Nieprawidłowe dane logowania', ['login_or_email' => $loginOrEmail]);
             return response()->json(['message' => 'Nieprawidłowe dane logowania.'], 401);
         }
 
-        // Log::info('Hasło zapisane w bazie', ['hashed_password' => $user->password]);
-
-        // Sprawdzenie hasła
-        if (!Hash::check($request->password, $user->password)) {
-            Log::error('Błędne hasło', ['user_id' => $user->id]);
-            return response()->json(['message' => 'Nieprawidłowe dane logowania.'], 401);
-        }
-
-        // Generowanie tokenu
         try {
+            // Usunięcie wszystkich poprzednich tokenów i wygenerowanie nowego
+            $user->tokens()->delete();
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Log::info('Zalogowano pomyślnie', ['user_id' => $user->id]);
+            Log::info('Zalogowano pomyślnie', ['user_id' => $user->id]);
+
             return response()->json([
                 'message' => 'Zalogowano pomyślnie',
                 'token' => $token,
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'login' => $user->login,
+                    'email' => $user->email,
+                    'role' => $user->role->name, // Zwracamy nazwę roli użytkownika
+                ],
             ], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas generowania tokenu', ['error' => $e->getMessage(), 'user_id' => $user->id]);
@@ -139,30 +135,52 @@ class AuthControllerAPI extends Controller
     }
 
     /**
-     * Log out the authenticated user.
+     * Wylogowanie użytkownika.
      */
     public function logout(Request $request)
     {
         try {
             $user = $request->user();
-    
+
             if (!$user) {
                 return response()->json(['message' => 'Użytkownik nie jest zalogowany.'], 401);
             }
-    
-            // Usunięcie tylko bieżącego tokena zamiast wszystkich
-            $request->user()->currentAccessToken()->delete();
+
+            // Usunięcie wszystkich tokenów użytkownika (wylogowanie ze wszystkich urządzeń)
+            $user->tokens()->delete();
+
             Log::info('Użytkownik wylogowany pomyślnie', ['user_id' => $user->id]);
-    
-            Session::flush(); // LEGACY
-    
+
+            Session::flush(); // Czyszczenie sesji
+
             return response()->json([
-                'message' => 'Wylogowano pomyślnie',
+                'message' => 'Wylogowano pomyślnie ze wszystkich urządzeń.',
             ], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas wylogowywania', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Wystąpił błąd podczas wylogowywania.'], 500);
         }
     }
-    
+
+    /**
+     * Pobieranie roli aktualnie zalogowanego użytkownika.
+     * Endpoint: GET /api/auth/user-role
+     */
+    public function getUserRole(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Nie jesteś zalogowany.'], 401);
+            }
+
+            return response()->json([
+                'role' => $user->role->name, // Pobieramy nazwę roli
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas pobierania roli użytkownika', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Wystąpił błąd podczas pobierania roli.'], 500);
+        }
+    }
 }
