@@ -3,18 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Repositories\UserRepository;
+use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class AdminControllerAPI extends Controller
 {
-    private $userRepository;
-
-    public function __construct(UserRepository $userRepository)
+    /**
+     * Sprawdza, czy użytkownik jest administratorem.
+     */
+    private function checkAdmin()
     {
-        $this->userRepository = $userRepository;
+        if (!auth()->check() || auth()->user()->role->name !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Brak uprawnień.'], 403);
+        }
+        return null;
     }
 
     /**
@@ -23,10 +30,10 @@ class AdminControllerAPI extends Controller
      */
     public function getUsers()
     {
-        $this->authorize('isAdmin'); // Sprawdzenie, czy użytkownik jest adminem
+        if ($error = $this->checkAdmin()) return $error;
 
         try {
-            $users = $this->userRepository->getAllUsersWithRoles();
+            $users = User::with('role')->get(); // Pobieranie użytkowników z relacją do ról
             return response()->json(['status' => 'success', 'data' => $users], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas pobierania listy użytkowników', ['error' => $e->getMessage()]);
@@ -40,22 +47,27 @@ class AdminControllerAPI extends Controller
      */
     public function addUser(Request $request)
     {
-        $this->authorize('isAdmin');
+        if ($error = $this->checkAdmin()) return $error;
 
         $validatedData = $request->validate([
             'email' => 'required|email|unique:users,email|max:255',
             'login' => 'required|string|unique:users,login|max:100',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:6',
             'role' => 'required|string|in:admin,user',
         ]);
 
         try {
-            $this->userRepository->addUser(
-                $validatedData['email'],
-                $validatedData['login'],
-                $validatedData['password'],
-                $validatedData['role']
-            );
+            $role = Role::where('name', $validatedData['role'])->first();
+            if (!$role) {
+                return response()->json(['status' => 'error', 'message' => 'Nie znaleziono roli.'], 400);
+            }
+
+            User::create([
+                'email' => $validatedData['email'],
+                'login' => $validatedData['login'],
+                'password' => Hash::make($validatedData['password']),
+                'role_id' => $role->id,
+            ]);
 
             return response()->json(['status' => 'success', 'message' => 'Użytkownik został dodany.'], 201);
         } catch (\Exception $e) {
@@ -70,10 +82,15 @@ class AdminControllerAPI extends Controller
      */
     public function deleteUser($id)
     {
-        $this->authorize('isAdmin');
+        if ($error = $this->checkAdmin()) return $error;
 
         try {
-            $this->userRepository->deleteUserById($id);
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Użytkownik nie istnieje.'], 404);
+            }
+
+            $user->delete();
             return response()->json(['status' => 'success', 'message' => 'Użytkownik został usunięty.'], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas usuwania użytkownika', ['error' => $e->getMessage()]);
@@ -81,54 +98,39 @@ class AdminControllerAPI extends Controller
         }
     }
 
-    /**
-     * Resetowanie hasła użytkownika.
-     * Endpoint: POST /api/admin/reset-password
-     */
-    public function resetPassword(Request $request)
-    {
-        $this->authorize('isAdmin');
+            /**
+             * Eksport bazy danych.
+             * Endpoint: GET /api/admin/sql-dump
+             */
+            public function exportDatabase()
+            {
+                if ($error = $this->checkAdmin()) return $error;
 
-        $validated = $request->validate([
-            'user_id' => 'required|uuid|exists:users,id',
-            'new_password' => 'required|string|min:6',
-        ]);
+                try {
+                    $backupDir = base_path('database/dumps'); // Katalog dla dumpów
+                    if (!is_dir($backupDir)) {
+                        mkdir($backupDir, 0777, true); // Tworzenie katalogu, jeśli nie istnieje
+                    }
 
-        try {
-            $hashedPassword = Hash::make($validated['new_password']);
-            $this->userRepository->updateUserPassword($validated['user_id'], $hashedPassword);
+                    $timestamp = now()->format('Y-m-d_H-i-s'); // Aktualna data i czas
+                    $backupFileName = "backup_$timestamp.sql"; // Dynamiczna nazwa pliku
+                    $backupPath = "$backupDir/$backupFileName"; // Pełna ścieżka pliku
+                    $command = "PGPASSWORD='" . env('DB_PASSWORD') . "' pg_dump -h " . env('DB_HOST') . " -U " . env('DB_USERNAME') . " -d " . env('DB_DATABASE') . " > $backupPath";
 
-            return response()->json(['status' => 'success', 'message' => 'Hasło użytkownika zostało zresetowane.'], 200);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas resetowania hasła', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się zresetować hasła.'], 500);
-        }
-    }
+                    exec($command, $output, $resultCode);
 
-    /**
-     * Eksport bazy danych.
-     * Endpoint: GET /api/admin/sql-dump
-     */
-    public function exportDatabase()
-    {
-        $this->authorize('isAdmin');
+                    if ($resultCode !== 0) {
+                        Log::error("Błąd eksportowania bazy danych", ['output' => implode("\n", $output)]);
+                        return response()->json(['status' => 'error', 'message' => 'Nie udało się wyeksportować bazy danych.'], 500);
+                    }
 
-        try {
-            $backupPath = storage_path('app/backup.sql');
-            $command = "PGPASSWORD='" . env('DB_PASSWORD') . "' pg_dump -h " . env('DB_HOST') . " -U " . env('DB_USERNAME') . " -d " . env('DB_DATABASE') . " > $backupPath";
-
-            exec($command, $output, $resultCode);
-
-            if ($resultCode === 0) {
-                return response()->download($backupPath);
-            } else {
-                return response()->json(['status' => 'error', 'message' => 'Błąd podczas eksportowania bazy danych.'], 500);
+                    return response()->download($backupPath, $backupFileName);
+                } catch (\Exception $e) {
+                    Log::error('Błąd podczas eksportowania bazy danych', ['error' => $e->getMessage()]);
+                    return response()->json(['status' => 'error', 'message' => 'Nie udało się wyeksportować bazy danych.'], 500);
+                }
             }
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas eksportowania bazy danych', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się wyeksportować bazy danych.'], 500);
-        }
-    }
+
 
     /**
      * Import bazy danych.
@@ -136,7 +138,7 @@ class AdminControllerAPI extends Controller
      */
     public function importDatabase(Request $request)
     {
-        $this->authorize('isAdmin');
+        if ($error = $this->checkAdmin()) return $error;
 
         $validated = $request->validate([
             'sql_file' => 'required|file|mimes:sql',
@@ -146,18 +148,37 @@ class AdminControllerAPI extends Controller
             $file = $request->file('sql_file');
             $filePath = $file->storeAs('imports', 'import.sql', 'local');
 
-            $command = "PGPASSWORD='" . env('DB_PASSWORD') . "' psql -h " . env('DB_HOST') . " -U " . env('DB_USERNAME') . " -d " . env('DB_DATABASE') . " < " . storage_path("app/$filePath");
+            $command = ["psql", "-h", env('DB_HOST'), "-U", env('DB_USERNAME'), "-d", env('DB_DATABASE'), "-f", storage_path("app/$filePath")];
 
-            exec($command, $output, $resultCode);
+            $process = new Process($command);
+            $process->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
+            $process->run();
 
-            if ($resultCode === 0) {
-                return response()->json(['status' => 'success', 'message' => 'Baza danych została zaimportowana.'], 200);
-            } else {
-                return response()->json(['status' => 'error', 'message' => 'Błąd podczas importowania bazy danych.'], 500);
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
             }
+
+            return response()->json(['status' => 'success', 'message' => 'Baza danych została zaimportowana.'], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas importowania bazy danych', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Nie udało się zaimportować bazy danych.'], 500);
+        }
+    }
+
+    /**
+     * Uruchamianie testów jednostkowych.
+     * Endpoint: POST /api/admin/run-tests
+     */
+    public function runTests()
+    {
+        if ($error = $this->checkAdmin()) return $error;
+
+        try {
+            $output = shell_exec("php artisan test --parallel");
+            return response()->json(['status' => 'success', 'output' => $output], 200);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas uruchamiania testów', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Nie udało się uruchomić testów.'], 500);
         }
     }
 }

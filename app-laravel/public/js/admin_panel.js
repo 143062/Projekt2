@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('user-search');
     const userTable = document.getElementById('user-list');
     const importStatus = document.getElementById('import-status');
-    const sqlImportForm = document.getElementById('sql-import-form');
+    const sqlImportForm = document.getElementById("sql-import-form");
     const sqlFileInput = document.getElementById('sql-file');
-    const addUserForm = document.querySelector('form[action="/admin/add_user"]');
-    const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const roleSelect = document.getElementById('role');
+    const addUserForm = document.getElementById("add-user-form");
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const roleSelect = document.getElementById("role");
     const runTestsButton = document.getElementById('run-tests-button');
     const testResults = document.getElementById('test-results');
 
@@ -47,118 +47,163 @@ document.addEventListener('DOMContentLoaded', function() {
         importStatus.style.display = 'none';
     }
 
+
+
+/////////////////////////// ^^^^ TO ZOSTALO STOCKOWE ^^^^ ///////////////////
+
+
+
+
+
+
+
     // Funkcja do pobierania aktualnej listy użytkowników i odświeżenia tabeli
-    function fetchAndUpdateUserList() {
-        fetch('/admin/get_users')
-            .then(response => response.json())
-            .then(data => {
-                logToConsole('Pobrano listę użytkowników', data);
-                const userTableBody = document.getElementById('user-list');
-                userTableBody.innerHTML = ''; // Wyczyść obecną tabelę
-
-                data.forEach(user => {
-                    // Przytnij datę utworzenia, aby usunąć część po kropce
-                    const createdAt = user.created_at.split('.')[0]; // Usuwa wszystko po kropce
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.id}</td>
-                        <td>${user.role}</td>
-                        <td>${user.login}</td>
-                        <td>${user.email}</td>
-                        <td>${createdAt}</td>
-                        <td>
-                            <button type="button" class="reset-password-button button" data-user-id="${user.id}" data-login="${user.login}">Hasło</button>
-                            <form method="post" action="/admin/delete_user" style="display:inline-block;">
-                                <input type="hidden" name="user_id" value="${user.id}">
-                                <button type="submit" class="delete-button button">Usuń</button>
-                            </form>
-                        </td>
-                    `;
-                    userTableBody.appendChild(row);
-                });
-
-                // Ponownie dodaj event listenery po dynamicznej aktualizacji
-                attachDeleteButtonEvents();
-                attachPasswordButtonEvents();
-            })
-            .catch(error => {
-                logToConsole('Błąd podczas pobierania listy użytkowników', error);
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchAndUpdateUserList();
+    });
+    
+    // Funkcja do pobierania listy użytkowników i odświeżania tabeli
+    window.fetchAndUpdateUserList = function () {
+        AdminAPI.getUsers().then(data => {
+            if (!data || !data.data) {
+                console.error('[admin_panel.js] Błąd: Brak danych użytkowników');
+                return;
+            }
+    
+            console.log('[admin_panel.js] Pobrano listę użytkowników:', data);
+            const userTableBody = document.getElementById('user-list');
+            userTableBody.innerHTML = ''; // Wyczyść obecną tabelę
+    
+            data.data.forEach(user => {
+                const createdAt = user.created_at ? user.created_at.split('.')[0] : 'Brak danych';
+    
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.role}</td>
+                    <td>${user.login}</td>
+                    <td>${user.email}</td>
+                    <td>${createdAt}</td>
+                    <td>
+                        <button type="button" class="reset-password-button button" data-user-id="${user.id}" data-login="${user.login}">Hasło</button>
+                        <button type="button" class="delete-button button" data-user-id="${user.id}">Usuń</button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
             });
-    }
-
-    // Funkcja do dynamicznego usuwania użytkownika bez potwierdzenia
-    function attachDeleteButtonEvents() {
-        const deleteButtons = document.querySelectorAll('.delete-button');
     
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                const userId = this.parentElement.querySelector('input[name="user_id"]').value;
-                logToConsole('Usuwanie użytkownika o ID', userId);
+            // Ponownie dodaj event listenery po dynamicznej aktualizacji
+            attachDeleteButtonEvents();
+            attachPasswordButtonEvents();
+        }).catch(error => console.error('[admin_panel.js] Błąd pobierania użytkowników:', error));
+    };
     
-                const formData = new FormData();
-                formData.append('user_id', userId);
     
-                fetch('/admin/delete_user', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Dodanie tokena CSRF
-                    },
-                    body: formData
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.status === 'success') {
-                            const row = this.closest('tr');
-                            row.remove();
-                            logToConsole(`Użytkownik o ID ${userId} został usunięty.`, data);
-                        } else {
-                            logToConsole(`Błąd podczas usuwania użytkownika o ID ${userId}`, data.message);
-                        }
-                    })
-                    .catch(error => {
-                        logToConsole('Błąd podczas usuwania użytkownika', error.message);
-                        alert(`Nie udało się usunąć użytkownika: ${error.message}`);
-                    });
-            });
+    // Usuwa użytkownika
+    window.deleteUser = function (userId) {
+        AdminAPI.deleteUser(userId).then(() => {
+            alert("Użytkownik usunięty!");
+            fetchAndUpdateUserList(); // Odśwież tabelę użytkowników
         });
     }
+    
 
-    // Obsługa formularza dodawania użytkownika
-    if (addUserForm) {
-        addUserForm.addEventListener('submit', function(event) {
+
+
+
+
+
+
+// Funkcja do dynamicznego usuwania użytkownika bez potwierdzenia
+window.attachDeleteButtonEvents = function () {
+    const deleteButtons = document.querySelectorAll('.delete-button');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (event) {
             event.preventDefault();
-            const formData = new FormData(addUserForm);
-            logToConsole('Wysłano dane do dodania użytkownika', formData);
+            const userId = this.dataset.userId; // Pobranie userId z `data-user-id`
 
-            fetch('/admin/add_user', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    logToConsole('Użytkownik został dodany', data);
-                    fetchAndUpdateUserList(); // Odśwież listę użytkowników po dodaniu nowego użytkownika
-                    usernameInput.value = '';
-                    emailInput.value = '';
-                    passwordInput.value = '';
-                    roleSelect.value = 'user';
+            if (!userId) {
+                console.error('[admin_panel.js] Błąd: Nie znaleziono `data-user-id` w przycisku usuwania.');
+                return;
+            }
+
+            logToConsole('Usuwanie użytkownika o ID', userId);
+
+            AdminAPI.deleteUser(userId).then(data => {
+                if (data && data.status === 'success') {
+                    const row = this.closest('tr');
+                    if (row) row.remove();
+                    logToConsole(`Użytkownik o ID ${userId} został usunięty.`, data);
                 } else {
-                    logToConsole('Błąd podczas dodawania użytkownika', data.message);
+                    logToConsole(`Błąd podczas usuwania użytkownika o ID ${userId}`, data ? data.message : "Nieznany błąd");
+                }
+            }).catch(error => {
+                logToConsole('Błąd podczas usuwania użytkownika', error.message);
+                alert(`Nie udało się usunąć użytkownika: ${error.message}`);
+            });
+        });
+    });
+};
+
+
+
+
+
+
+    
+
+// Obsługa formularza dodawania użytkownika
+
+if (addUserForm) {
+    addUserForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const login = usernameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const role = roleSelect.value;
+        const submitButton = addUserForm.querySelector("button[type='submit']");
+
+        if (!login || !email || !password) {
+            alert("Proszę wypełnić wszystkie pola przed dodaniem użytkownika.");
+            return;
+        }
+
+        logToConsole("Wysłano dane do dodania użytkownika", { login, email, role });
+
+        // Zablokowanie przycisku, aby użytkownik nie mógł kliknąć wielokrotnie
+        submitButton.disabled = true;
+
+        AdminAPI.addUser(login, email, password, role)
+            .then(data => {
+                if (data && data.status === "success") {
+                    logToConsole("Użytkownik został dodany", data);
+                    fetchAndUpdateUserList(); // Odśwież listę użytkowników po dodaniu nowego użytkownika
+                    usernameInput.value = "";
+                    emailInput.value = "";
+                    passwordInput.value = "";
+                    roleSelect.value = "user";
+                    alert("Użytkownik został pomyślnie dodany!");
+                } else {
+                    logToConsole("Błąd podczas dodawania użytkownika", data ? data.message : "Nieznany błąd");
+                    alert("Błąd podczas dodawania użytkownika: " + (data ? data.message : "Nieznany błąd"));
                 }
             })
             .catch(error => {
-                logToConsole('Błąd podczas dodawania użytkownika', error);
+                logToConsole("Błąd podczas dodawania użytkownika", error);
+                alert("Wystąpił błąd podczas dodawania użytkownika. Spróbuj ponownie.");
+            })
+            .finally(() => {
+                // Odblokowanie przycisku po zakończeniu operacji
+                submitButton.disabled = false;
             });
-        });
-    }
+    });
+}
+
+
+
+///////////////////////////////////////////////////////////////////
 
     // Logowanie wyszukiwania użytkowników
     searchInput.addEventListener('input', function() {
@@ -177,6 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+/////////////////////////// TO ZOSTALO STOCKOWE ///////////////////
+
+
+///////////////////////////////////////////////////////////////////
+
     // Funkcja do obsługi przycisków resetowania hasła
     function attachPasswordButtonEvents() {
         const passwordButtons = document.querySelectorAll('.reset-password-button');
@@ -192,6 +242,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+
+///////// TO niby tez stockowe ale cos mi tu nie pasuje, bo skad ten data-user-id i data-login? chyba, ze to jest z tabelki, to wtedy git ///////////////////
+
+
+
+///////////////////////////////////////////////////////////////////
+
     // Logowanie zamykania modala
     closeModal.addEventListener('click', function() {
         modal.style.display = 'none';
@@ -206,51 +263,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Obsługa importu SQL
-    if (sqlImportForm) {
-        sqlFileInput.addEventListener('change', function() {
-            const fileName = sqlFileInput.files[0]?.name || 'Nie wybrano pliku';
-            document.querySelector('.file-name').textContent = fileName;
-            logToConsole('Wybrano plik do importu', fileName);
 
-            if (sqlFileInput.files.length > 0) {
-                hideImportStatus();
+/////////////////////////// TO ZOSTALO STOCKOWE ///////////////////
+
+
+
+
+
+
+
+
+
+
+
+// Obsługa pobierania SQL Dump
+const sqlDumpButton = document.getElementById("sql-dump-button");
+if (sqlDumpButton) {
+    sqlDumpButton.addEventListener("click", function () {
+        fetch('/api/admin/sql-dump', {
+            method: "GET",
+            headers: Auth.attachAuthHeaders(),
+        })
+        .then(response => {
+            const filename = response.headers.get('Content-Disposition')
+                ?.split('filename=')[1]
+                ?.replace(/["']/g, '') || "backup.sql"; // Pobiera nazwę pliku z API
+        
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename; 
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => console.error("[admin_panel.js] Błąd pobierania SQL Dump:", error));
+        
+    });
+}
+
+// Obsługa importu SQL
+
+if (sqlImportForm) {
+    sqlImportForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const sqlFileInput = document.getElementById("sql-file");
+        if (!sqlFileInput.files.length) {
+            alert("Proszę wybrać plik przed importem.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("sql_file", sqlFileInput.files[0]);
+
+        const importButton = document.getElementById("sql-import-button");
+        importButton.disabled = true;
+
+        AdminAPI.importDatabase(sqlFileInput.files[0]).then(data => {
+            if (data && data.status === "success") {
+                showImportStatus("Baza danych została pomyślnie przywrócona!", true);
+            } else {
+                showImportStatus("Błąd podczas importu bazy danych.", false);
             }
+        }).catch(error => {
+            console.error("[admin_panel.js] Błąd importu bazy danych:", error);
+            showImportStatus("Błąd podczas importu bazy danych.", false);
+        }).finally(() => {
+            importButton.disabled = false;
         });
+    });
+}
 
-        sqlImportForm.addEventListener('submit', function(event) {
-            event.preventDefault();
 
-            if (!sqlFileInput.files.length) {
-                logToConsole('Nie wybrano pliku SQL', null);
-                showImportStatus('Proszę wybrać plik przed kliknięciem "Importuj SQL".', false);
-                return;
-            }
-
-            const formData = new FormData(sqlImportForm);
-            logToConsole('Wysłano plik SQL do importu', formData);
-
-            fetch('/admin/sql_import', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    logToConsole('Import SQL zakończony sukcesem', data.logs);
-                    showImportStatus('Baza danych została pomyślnie przywrócona!', true);
-                    fetchAndUpdateUserList(); // Odśwież listę użytkowników po imporcie
-                } else {
-                    logToConsole('Błąd podczas importu SQL', data.details);
-                    showImportStatus('Wystąpił błąd podczas importu bazy danych.', false);
-                }
-            })
-            .catch(error => {
-                logToConsole('Błąd podczas importu SQL', error);
-                showImportStatus('Wystąpił błąd podczas importu bazy danych.', false);
-            });
-        });
-    }
 
     // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
     attachDeleteButtonEvents();
@@ -265,10 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-/// to poki co pomijamy
+//////////////////////////////////// LEGACY
 
-
-
+////////////////////////////////////// TEGO I TAK RACZEJ NIE BEDE IMPLEMENTOWAL ALE SIE FAJNIE KRECI PRZYNAJMNIEJ, WIEC MA ZOSTAC
 
 
 
@@ -284,14 +371,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Przewiń do loadera
             scrollToElement(loader);
     
-            fetch('/admin/run_tests', {
-                method: 'POST'
-            })
-            .then(response => {
-                logToConsole('Odpowiedź z serwera na uruchomienie testów', response);
-                return response.json(); // Spróbuj sparsować odpowiedź jako JSON
-            })
-            .then(data => {
+            AdminAPI.runTests().then(data => {
+                if (!data) {
+                    testResults.textContent = 'Błąd: brak odpowiedzi z serwera.';
+                    return;
+                }
+    
                 logToConsole('Otrzymane dane JSON', data);
     
                 // Tworzenie bardziej czytelnego podsumowania
@@ -308,9 +393,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-failure"><strong>Testy zakończone niepowodzeniem:</strong> ${totalFailures}</p>
                 `;
     
-                // Opcjonalnie, wyświetlenie szczegółów każdego repozytorium
+                // Opcjonalnie, wyświetlenie szczegółów testów
                 if (data.results && data.results.length > 0) {
-                    let details = '<h4>Szczegóły testów dla poszczególnych repozytoriów:</h4><ul>';
+                    let details = '<h4>Szczegóły testów:</h4><ul>';
                     data.results.forEach(result => {
                         details += `<li>${result.repository}: ${result.tests} testy, ${result.assertions} asercje, ${result.failures} błędy</li>`;
                     });
@@ -320,15 +405,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
                 resultSummary += `<h3><a class="raw-link" href="http://localhost:8080/run_tests_raw" target="_blank">RAW</a></h3>`;
     
-                // Wyświetlenie podsumowania i szczegółów
+                // Wyświetlenie wyników
                 testResults.innerHTML = resultSummary;
-    
-                // Ukryj loader i pokaż wyniki
                 loader.style.display = 'none';
                 testResults.style.display = 'block';
                 scrollToElement(testResults); // Przewiń do wyników
-            })
-            .catch(error => {
+            }).catch(error => {
                 logToConsole('Błąd podczas uruchamiania testów', error);
                 testResults.textContent = 'Wystąpił błąd podczas uruchamiania testów.';
                 loader.style.display = 'none';
@@ -337,4 +419,59 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+
+
+// Obsługa uruchamiania testów jednostkowych
+
+
+if (runTestsButton) {
+    runTestsButton.addEventListener("click", function () {
+        logToConsole("Uruchamianie testów jednostkowych", null);
+
+        testResults.textContent = "Trwa uruchamianie testów...";
+
+        AdminAPI.runTests().then(data => {
+            if (!data) {
+                testResults.textContent = "Błąd: brak odpowiedzi z serwera.";
+                return;
+            }
+
+            logToConsole("Otrzymane dane testów", data);
+
+            // Tworzenie bardziej czytelnego podsumowania
+            const totalTests = data.totalTests || 0;
+            const totalAssertions = data.totalAssertions || 0;
+            const totalFailures = data.totalFailures || 0;
+            const passedTests = totalTests - totalFailures;
+
+            let resultSummary = `
+                ✅ Łączna liczba testów: ${totalTests}
+                ✅ Łączna liczba asercji: ${totalAssertions}
+                ✅ Testy zakończone sukcesem: ${passedTests}
+                ❌ Testy zakończone niepowodzeniem: ${totalFailures}
+            `;
+
+            // Opcjonalnie, wyświetlenie szczegółów testów
+            if (data.results && data.results.length > 0) {
+                resultSummary += `\n🔍 Szczegóły testów:\n`;
+                data.results.forEach(result => {
+                    resultSummary += `📌 ${result.repository}: ${result.tests} testy, ${result.assertions} asercje, ${result.failures} błędy\n`;
+                });
+            }
+
+            testResults.textContent = resultSummary;
+        }).catch(error => {
+            logToConsole("Błąd podczas uruchamiania testów", error);
+            testResults.textContent = "Wystąpił błąd podczas uruchamiania testów.";
+        });
+    });
+}
+
+
+
+
+
+
+
 });
