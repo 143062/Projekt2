@@ -127,6 +127,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <p>${note.content}</p>
                     <p class="shared-owner">Udostępnione przez: ${note.owner_login}</p>
                 `;
+            
+                // Dodanie obsługi kliknięcia do otwierania modala dla współdzielonych notatek
+                noteCard.addEventListener('click', function () {
+                    showNoteModal(noteCard, index);
+                });
+            
                 sharedNotesContainer.appendChild(noteCard);
             });
         })

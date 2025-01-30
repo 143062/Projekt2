@@ -223,23 +223,41 @@ public function storeOrUpdate(Request $request, $id = null)
     {
         try {
             $user = $request->user();
+    
+            // Pobierz notatkę jako właściciel
             $note = Note::where('id', $id)
-                        ->where('user_id', $user->id) // Pobiera tylko notatki użytkownika
+                        ->where('user_id', $user->id)
                         ->first();
+    
+            // Jeśli użytkownik nie jest właścicielem, sprawdź, czy ma dostęp jako współdzielący
+            if (!$note) {
+                $note = Note::where('id', $id)
+                            ->whereHas('sharedWith', function ($query) use ($user) {
+                                $query->where('user_id', $user->id);
+                            })
+                            ->with('user:id,login') // Pobieramy login właściciela notatki
+                            ->first();
+            }
     
             if (!$note) {
                 return response()->json(['message' => 'Notatka nie istnieje lub brak dostępu'], 404);
             }
     
-            return response()->json($note); // Zwraca notatkę jako JSON
+            return response()->json([
+                'id' => $note->id,
+                'title' => $note->title,
+                'content' => $note->content,
+                'owner' => [
+                    'id' => $note->user->id,
+                    'login' => $note->user->login
+                ]
+            ]);
         } catch (\Exception $e) {
             Log::error('Błąd podczas pobierania notatki', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
     }
     
-
-
 
 
 
