@@ -373,7 +373,6 @@ addFriendButton.addEventListener('click', function () {
 // Wyświetlenie modala notatki
 function showNoteModal(noteCard, index) {
     const noteId = noteCard.getAttribute('data-id');
-    const isShared = noteCard.getAttribute('data-shared') === 'true';
 
     editingNoteIndex = index;
 
@@ -382,37 +381,29 @@ function showNoteModal(noteCard, index) {
         modalNoteTitle.dataset.id = noteId;
         modalNoteContent.textContent = data.content;
 
-        friends = []; // Resetujemy listę
+        friends = []; // Resetujemy listę znajomych
 
-        //  Pobieranie użytkowników, którym udostępniono notatkę
-        fetchSharedUsersForNote(noteId).then(sharedUsers => {
-            if (!Array.isArray(sharedUsers)) {
-                console.error(`[dashboard.js] Błąd: Lista użytkowników nie jest tablicą!`, sharedUsers);
-                return;
-            }
-            console.log(`[dashboard.js] Użytkownicy z dostępem do notatki ${noteId}:`, sharedUsers);
+        // Sprawdzamy, czy notatka pochodzi z sekcji współdzielonych
+        const isSharedNote = noteCard.closest('#shared-notes') !== null;
 
-            friends = sharedUsers; // Przypisujemy poprawną listę
-            updateSharedWith(); // Aktualizujemy interfejs
-        });
-
-        if (isShared) {
+        // Jeśli to notatka współdzielona, ukrywamy przyciski edycji i usuwania
+        if (isSharedNote) {
             editNoteButton.style.display = 'none';
             deleteNoteButton.style.display = 'none';
-            modalSharedWithContainer.innerHTML = '';        
         } else {
             editNoteButton.style.display = 'inline-block';
             deleteNoteButton.style.display = 'inline-block';
-            modalSharedWithContainer.innerHTML = '';
 
-            friends.forEach(friend => {
-                const friendDiv = document.createElement('div');
-                friendDiv.className = 'friend'; 
-                friendDiv.innerHTML = `
-                    <img src="${friend.profile_picture}" alt="${friend.login}" class="friend-icon">
-                    <span>${friend.login}</span>
-                `;
-                modalSharedWithContainer.appendChild(friendDiv);
+            // Pobieramy listę użytkowników, którym udostępniliśmy notatkę, tylko jeśli jest nasza
+            fetchSharedUsersForNote(noteId).then(sharedUsers => {
+                if (!Array.isArray(sharedUsers)) {
+                    console.error(`[dashboard.js] Błąd: Lista użytkowników nie jest tablicą!`, sharedUsers);
+                    return;
+                }
+                console.log(`[dashboard.js] Użytkownicy z dostępem do notatki ${noteId}:`, sharedUsers);
+
+                friends = sharedUsers;
+                updateSharedWith();
             });
         }
 
