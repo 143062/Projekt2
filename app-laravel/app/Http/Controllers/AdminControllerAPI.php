@@ -278,4 +278,3 @@ public function changeUserPassword(Request $request, $id)
 
 }
 
-
