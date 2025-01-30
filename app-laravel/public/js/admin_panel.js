@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const userTable = document.getElementById('user-list');
     const importStatus = document.getElementById('import-status');
     const sqlImportForm = document.getElementById("sql-import-form");
-    const sqlFileInput = document.getElementById('sql-file');
+    const sqlFileInput = document.getElementById("sql-file");
     const addUserForm = document.getElementById("add-user-form");
     const usernameInput = document.getElementById("username");
     const emailInput = document.getElementById("email");
@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function logToConsole(label, data) {
         console.log(`[admin_panel.js] ${label}:`, data);
     }
+
 
     // Funkcja do przewijania strony do określonego elementu
     function scrollToElement(element) {
@@ -57,10 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Funkcja do pobierania aktualnej listy użytkowników i odświeżenia tabeli
-    document.addEventListener("DOMContentLoaded", function () {
-        fetchAndUpdateUserList();
-    });
+
     
     // Funkcja do pobierania listy użytkowników i odświeżania tabeli
     window.fetchAndUpdateUserList = function () {
@@ -72,15 +70,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
             console.log('[admin_panel.js] Pobrano listę użytkowników:', data);
             const userTableBody = document.getElementById('user-list');
+    
+            if (!userTableBody) {
+                console.error("[admin_panel.js] Błąd: Nie znaleziono elementu #user-list.");
+                return;
+            }
+    
             userTableBody.innerHTML = ''; // Wyczyść obecną tabelę
     
             data.data.forEach(user => {
                 const createdAt = user.created_at ? user.created_at.split('.')[0] : 'Brak danych';
+                const roleName = user.role?.name || "Brak roli"; // Pobranie nazwy roli, jeśli istnieje
     
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${user.id}</td>
-                    <td>${user.role}</td>
+                    <td>${roleName}</td> <!-- Upewniamy się, że pobieramy nazwę roli -->
                     <td>${user.login}</td>
                     <td>${user.email}</td>
                     <td>${createdAt}</td>
@@ -92,17 +97,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 userTableBody.appendChild(row);
             });
     
+            // Jeśli użytkownicy zostali załadowani, usuń placeholder "Ładowanie użytkowników..."
+            if (data.data.length === 0) {
+                userTableBody.innerHTML = '<tr><td colspan="6">Brak użytkowników do wyświetlenia.</td></tr>';
+            }
+    
             // Ponownie dodaj event listenery po dynamicznej aktualizacji
             attachDeleteButtonEvents();
             attachPasswordButtonEvents();
-        }).catch(error => console.error('[admin_panel.js] Błąd pobierania użytkowników:', error));
+        }).catch(error => {
+            console.error('[admin_panel.js] Błąd pobierania użytkowników:', error);
+        });
     };
     
+    
+    
+
+    // Wywołanie pobierania listy użytkowników na start
+    fetchAndUpdateUserList();
+
+
     
     // Usuwa użytkownika
     window.deleteUser = function (userId) {
         AdminAPI.deleteUser(userId).then(() => {
-            alert("Użytkownik usunięty!");
+            //alert("Użytkownik usunięty!");
             fetchAndUpdateUserList(); // Odśwież tabelę użytkowników
         });
     }
@@ -184,15 +203,15 @@ if (addUserForm) {
                     emailInput.value = "";
                     passwordInput.value = "";
                     roleSelect.value = "user";
-                    alert("Użytkownik został pomyślnie dodany!");
+                    //alert("Użytkownik został pomyślnie dodany!");
                 } else {
                     logToConsole("Błąd podczas dodawania użytkownika", data ? data.message : "Nieznany błąd");
-                    alert("Błąd podczas dodawania użytkownika: " + (data ? data.message : "Nieznany błąd"));
+                    //alert("Błąd podczas dodawania użytkownika: " + (data ? data.message : "Nieznany błąd"));
                 }
             })
             .catch(error => {
                 logToConsole("Błąd podczas dodawania użytkownika", error);
-                alert("Wystąpił błąd podczas dodawania użytkownika. Spróbuj ponownie.");
+                //alert("Wystąpił błąd podczas dodawania użytkownika. Spróbuj ponownie.");
             })
             .finally(() => {
                 // Odblokowanie przycisku po zakończeniu operacji
@@ -222,11 +241,7 @@ if (addUserForm) {
         });
     });
 
-/////////////////////////// TO ZOSTALO STOCKOWE ///////////////////
-
-
-///////////////////////////////////////////////////////////////////
-
+    
     // Funkcja do obsługi przycisków resetowania hasła
     function attachPasswordButtonEvents() {
         const passwordButtons = document.querySelectorAll('.reset-password-button');
@@ -243,7 +258,13 @@ if (addUserForm) {
     }
 
 
-///////// TO niby tez stockowe ale cos mi tu nie pasuje, bo skad ten data-user-id i data-login? chyba, ze to jest z tabelki, to wtedy git ///////////////////
+    // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
+    attachDeleteButtonEvents();
+    attachPasswordButtonEvents();
+
+
+
+/////////////////////////// TO ZOSTALO STOCKOWE ///////////////////
 
 
 
@@ -305,13 +326,21 @@ if (sqlDumpButton) {
     });
 }
 
-// Obsługa importu SQL
 
+
+// Obsługa wyboru pliku SQL – Wyświetlanie nazwy wybranego pliku
+if (sqlFileInput) {
+    sqlFileInput.addEventListener("change", function () {
+        const fileName = sqlFileInput.files.length > 0 ? sqlFileInput.files[0].name : "Nie wybrano pliku";
+        document.querySelector(".file-name").textContent = fileName;
+    });
+}
+
+// Obsługa importu SQL
 if (sqlImportForm) {
     sqlImportForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        const sqlFileInput = document.getElementById("sql-file");
         if (!sqlFileInput.files.length) {
             alert("Proszę wybrać plik przed importem.");
             return;
@@ -323,7 +352,7 @@ if (sqlImportForm) {
         const importButton = document.getElementById("sql-import-button");
         importButton.disabled = true;
 
-        AdminAPI.importDatabase(sqlFileInput.files[0]).then(data => {
+        AdminAPI.importDatabase(formData).then(data => { // Poprawione przekazywanie `formData`
             if (data && data.status === "success") {
                 showImportStatus("Baza danych została pomyślnie przywrócona!", true);
             } else {
@@ -338,11 +367,6 @@ if (sqlImportForm) {
     });
 }
 
-
-
-    // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
-    attachDeleteButtonEvents();
-    attachPasswordButtonEvents();
 
 
 

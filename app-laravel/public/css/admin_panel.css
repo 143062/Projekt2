@@ -18,13 +18,26 @@
     justify-content: space-between;
 }
 
+
+
 .profile-button {
     display: flex;
     align-items: center;
     color: #6DC1BC;
     text-decoration: none;
     cursor: pointer;
+    background: none; /* Usuwa domyślne tło */
+    border: none; /* Usuwa domyślną ramkę */
+    padding: 0; /* Usuwa domyślny padding */
+    font: inherit; /* Upewnia się, że tekst wygląda jak w linku */
 }
+
+.profile-button:focus {
+    outline: none; /* Usuwa niechcianą obwódkę po kliknięciu */
+}
+
+
+
 
 .profile-icon {
     width: 150px;
@@ -489,3 +502,6 @@ input:focus, select:focus {
 h3 .raw-link {
     font-size: 1.5em;
 }
+
+
+

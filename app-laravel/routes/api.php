@@ -57,6 +57,8 @@ Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/sql-dump', [AdminControllerAPI::class, 'exportDatabase']);
     Route::post('/sql-import', [AdminControllerAPI::class, 'importDatabase']);
     Route::post('/run-tests', [AdminControllerAPI::class, 'runTests']); // Dodano brakującą trasę
+    Route::put('/admin/users/{id}/password', [AdminControllerAPI::class, 'changeUserPassword']);
+
 });
 
 // 🔹 Trasy testowe

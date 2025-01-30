@@ -444,14 +444,15 @@ COPY public.personal_access_tokens (id, tokenable_type, tokenable_id, name, toke
 28	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	fe337bde0edaf56fdb78ec8f05a37bacbd24ed9d855b215e2f62711311c10feb	["*"]	2025-01-30 03:15:04	\N	2025-01-30 03:03:02	2025-01-30 03:15:04
 18	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	471961b3b7b63634c3bac912addbf14dbbdb5366428ae5f59ecb0966250da9ae	["*"]	2025-01-29 23:32:31	\N	2025-01-29 22:07:52	2025-01-29 23:32:31
 16	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	c68aef1db137c1b9df0d9506c695529790552ed65f044dad1f7f4fc0ea29d67d	["*"]	2025-01-29 21:28:07	\N	2025-01-29 21:27:57	2025-01-29 21:28:07
-65	App\\Models\\User	27ab346c-c5aa-4c69-87e3-70b1cc9914c8	auth_token	b3b313103cb4a4979f901d5d98cb1fdfc1bf3fec450722bc37ee05c4862b00cf	["*"]	2025-01-30 08:14:18	\N	2025-01-30 08:13:38	2025-01-30 08:14:18
+71	App\\Models\\User	b74799b0-a57a-4057-aba8-09c419c5cf57	auth_token	4ba55524f4679978483787cc1e5d7cb9e539bca2388306d2ce5a801effe9b18c	["*"]	2025-01-30 19:38:55	\N	2025-01-30 19:28:51	2025-01-30 19:38:55
 36	App\\Models\\User	43446d55-036f-44f0-bb5c-ed4183f113a1	auth_token	4a5c3c89bde852bf31aef3dbd7da935f40374e1cf02673537b175d97fce67a9c	["*"]	2025-01-30 03:34:28	\N	2025-01-30 03:33:49	2025-01-30 03:34:28
 30	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	9234be5f9fc51a674905192fa38db8fe3b7d64e8e4176b40e239e524fe72ba0c	["*"]	2025-01-30 03:26:38	\N	2025-01-30 03:23:28	2025-01-30 03:26:38
 32	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	bb9f45fe3157932f4db8713a90715095fede874d3af1966cd3d5fd3669dfe5e1	["*"]	2025-01-30 03:29:04	\N	2025-01-30 03:28:35	2025-01-30 03:29:04
 40	App\\Models\\User	ab3e524c-c7d4-41de-8f30-7e6d3ead0034	auth_token	8eb08d88610e952df7cd48c000663c15f3f781cca768ecb4da149aeba9b5ea0b	["*"]	2025-01-30 05:00:41	\N	2025-01-30 04:59:21	2025-01-30 05:00:41
 37	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	8d3a9a3001fcf6b11df0d020ccaaff3bfa34c36c64a53805bbdc3663c3c21383	["*"]	2025-01-30 03:35:50	\N	2025-01-30 03:34:33	2025-01-30 03:35:50
 39	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	2c7415b20f3c6c49d1066da92eb9b4d86de55a0885cebcd8e8a03a8345d79c14	["*"]	2025-01-30 04:59:06	\N	2025-01-30 04:58:34	2025-01-30 04:59:06
-66	App\\Models\\User	b74799b0-a57a-4057-aba8-09c419c5cf57	auth_token	28244efe7b8c4cee01f78fa3542c136cfc00f5aab0c79075c054ae998ee9903d	["*"]	2025-01-30 12:16:59	\N	2025-01-30 08:15:58	2025-01-30 12:16:59
+68	App\\Models\\User	435f8f5c-5584-47f4-979f-144d6fd23614	auth_token	5231d4fb2d4a40a8a0452e36e0e8142fabd9a1a68b77dd61a94f122ec42ca4e1	["*"]	2025-01-30 19:15:42	\N	2025-01-30 19:15:06	2025-01-30 19:15:42
+70	App\\Models\\User	27ab346c-c5aa-4c69-87e3-70b1cc9914c8	auth_token	9eeadd6b7502a1e8780f2d378464f7f57206eca19f2bff760e5dc5a2a599a4bb	["*"]	2025-01-30 19:27:14	\N	2025-01-30 19:26:57	2025-01-30 19:27:14
 \.
 
 
@@ -470,7 +471,8 @@ COPY public.roles (id, name) FROM stdin;
 --
 
 COPY public.sessions (id, user_id, ip_address, user_agent, payload, last_activity) FROM stdin;
-lZ5gEn4VtLVJsZTxHNAXdCLxyRZ06A0NgIMFHZRc	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTo0OntzOjY6Il90b2tlbiI7czo0MDoiODVJQUlLTHZhYkRSdzJDOFVuZjYwR0FaT2hiTzA1T01lb2xpTThGbyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MzE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9kYXNoYm9hcmQiO319	1738239371
+lZ5gEn4VtLVJsZTxHNAXdCLxyRZ06A0NgIMFHZRc	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTo0OntzOjY6Il90b2tlbiI7czo0MDoiODVJQUlLTHZhYkRSdzJDOFVuZjYwR0FaT2hiTzA1T01lb2xpTThGbyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MzE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9kYXNoYm9hcmQiO319	1738239813
+MIB58qymatGwISeW2DJwmqYnSWVW1wKGOVbx8bKZ	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTozOntzOjY6Il90b2tlbiI7czo0MDoiU2lYWEY5MUhBTzVSRk5ZNnBYczBhak1ma1g1bmtFM25CS0ExQ3hGZSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=	1738265875
 \.
 
 
@@ -507,6 +509,7 @@ cedb9dfa-cfe2-41a1-b2ef-d7c2536c32bb	user3user	user3user@user.com	$2y$12$pvJE.LI
 27ab346c-c5aa-4c69-87e3-70b1cc9914c8	testowicz	testowicz@test.com	$2y$12$BxlDVPmFK198CAgzW6AE3e8imUFysC.ncazpCF4.NYSs64rCgNbDi	img/profile/27ab346c-c5aa-4c69-87e3-70b1cc9914c8/profile.jpg	713cfd86-8d26-45c3-a84a-42c5d5aebdf0	2025-01-29 01:32:17	2025-01-29 23:33:23
 ab3e524c-c7d4-41de-8f30-7e6d3ead0034	test7test7	test7test7@test.com	$2y$12$OahsMQyWOSasslscL2/v7OWz5Giy0Y6x66FhGU1xHPwlwq46RXbti	img/profile/ab3e524c-c7d4-41de-8f30-7e6d3ead0034/profile.jpg	713cfd86-8d26-45c3-a84a-42c5d5aebdf0	2025-01-29 23:35:15	2025-01-29 23:46:36
 b74799b0-a57a-4057-aba8-09c419c5cf57	admin	admin@admin.com	$2y$12$XmeLwNPf1xY8ljTNl.9VM.USd.XHW1GpycTbwO9kV61kd8ynKrcHK	img/profile/default/default_profile_picture.jpg	0c60e265-2004-4dae-8312-0facac127e18	2025-01-30 06:01:16	\N
+9d5e33d1-b5aa-4e7b-8b08-cead65f5658c	panelowicz	panelowicz@mail.com	$2y$12$9ccpsVUySii66ystGcc/xuER48NTN6.YGxeNHO6ZumXEnnwy4IdN2	public/img/profile/default/default_profile_picture.jpg	0c60e265-2004-4dae-8312-0facac127e18	2025-01-30 19:30:33	2025-01-30 19:30:33
 \.
 
 
@@ -535,7 +538,7 @@ SELECT pg_catalog.setval('public.migrations_id_seq', 27, true);
 -- Name: personal_access_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
 --
 
-SELECT pg_catalog.setval('public.personal_access_tokens_id_seq', 66, true);
+SELECT pg_catalog.setval('public.personal_access_tokens_id_seq', 71, true);
 
 
 --

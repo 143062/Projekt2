@@ -10,9 +10,10 @@
 <body>
     <div class="container">
         <div class="top-bar">
-            <a href="/logout" class="profile-button">
-                <img src="/img/logout.svg" alt="Logout" class="profile-icon">
-            </a>
+        <button id="logout-button" class="profile-button">
+            <img src="/img/logout.svg" alt="Logout" class="profile-icon">
+        </button>
+
             <h1 class="admin-title">Panel Administratora</h1>
             <img src="/img/logo.svg" alt="Logo" class="logo">
         </div>
@@ -123,7 +124,7 @@
         </div>
 
 
-        
+
     </div>
 
 
@@ -138,7 +139,9 @@
     <script src="/js/init.js"></script>
 
 
+    <script src="/js/admin_panel-api.js"></script>
     <script src="/js/admin_panel.js"></script>
+
 
 </body>
 </html>

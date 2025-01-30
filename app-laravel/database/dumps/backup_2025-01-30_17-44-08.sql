@@ -451,7 +451,7 @@ COPY public.personal_access_tokens (id, tokenable_type, tokenable_id, name, toke
 40	App\\Models\\User	ab3e524c-c7d4-41de-8f30-7e6d3ead0034	auth_token	8eb08d88610e952df7cd48c000663c15f3f781cca768ecb4da149aeba9b5ea0b	["*"]	2025-01-30 05:00:41	\N	2025-01-30 04:59:21	2025-01-30 05:00:41
 37	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	8d3a9a3001fcf6b11df0d020ccaaff3bfa34c36c64a53805bbdc3663c3c21383	["*"]	2025-01-30 03:35:50	\N	2025-01-30 03:34:33	2025-01-30 03:35:50
 39	App\\Models\\User	29584de3-22cf-45c9-be1f-c9710300cbe4	auth_token	2c7415b20f3c6c49d1066da92eb9b4d86de55a0885cebcd8e8a03a8345d79c14	["*"]	2025-01-30 04:59:06	\N	2025-01-30 04:58:34	2025-01-30 04:59:06
-66	App\\Models\\User	b74799b0-a57a-4057-aba8-09c419c5cf57	auth_token	28244efe7b8c4cee01f78fa3542c136cfc00f5aab0c79075c054ae998ee9903d	["*"]	2025-01-30 12:19:20	\N	2025-01-30 08:15:58	2025-01-30 12:19:20
+66	App\\Models\\User	b74799b0-a57a-4057-aba8-09c419c5cf57	auth_token	28244efe7b8c4cee01f78fa3542c136cfc00f5aab0c79075c054ae998ee9903d	["*"]	2025-01-30 17:44:08	\N	2025-01-30 08:15:58	2025-01-30 17:44:08
 \.
 
 
@@ -470,7 +470,8 @@ COPY public.roles (id, name) FROM stdin;
 --
 
 COPY public.sessions (id, user_id, ip_address, user_agent, payload, last_activity) FROM stdin;
-lZ5gEn4VtLVJsZTxHNAXdCLxyRZ06A0NgIMFHZRc	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTo0OntzOjY6Il90b2tlbiI7czo0MDoiODVJQUlLTHZhYkRSdzJDOFVuZjYwR0FaT2hiTzA1T01lb2xpTThGbyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MzE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9kYXNoYm9hcmQiO319	1738239541
+lZ5gEn4VtLVJsZTxHNAXdCLxyRZ06A0NgIMFHZRc	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTo0OntzOjY6Il90b2tlbiI7czo0MDoiODVJQUlLTHZhYkRSdzJDOFVuZjYwR0FaT2hiTzA1T01lb2xpTThGbyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MzE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9kYXNoYm9hcmQiO319	1738239813
+MIB58qymatGwISeW2DJwmqYnSWVW1wKGOVbx8bKZ	\N	172.18.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36	YTozOntzOjY6Il90b2tlbiI7czo0MDoiU2lYWEY5MUhBTzVSRk5ZNnBYczBhak1ma1g1bmtFM25CS0ExQ3hGZSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzM6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hZG1pbl9wYW5lbCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=	1738259040
 \.
 
 
