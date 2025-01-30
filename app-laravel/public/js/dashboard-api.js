@@ -1,114 +1,120 @@
-// Dodaje lub edytuje notatkę w API
+// 📌 Pobieranie nagłówków autoryzacji (wspiera Sanctum)
+function getAuthHeaders() {
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+
+    const authToken = Auth.getToken();
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    } else {
+        console.error("[dashboard-api.js] Brak tokena autoryzacji.");
+    }
+
+    return headers;
+}
+
+// 📌 Dodawanie lub edycja notatki w API
 window.saveNoteToAPI = function (noteData, noteId = null) { 
     const method = noteId ? 'PUT' : 'POST';
-    const endpoint = noteId ? `/api/notes/${noteId}` : `/api/notes`; 
+    const endpoint = noteId ? `/api/notes/${noteId}` : `/api/notes`;
 
     return fetch(endpoint, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify(noteData)
-    }).then(response => response.json().then(data => ({ status: response.status, body: data })));
+        headers: getAuthHeaders(),
+        body: JSON.stringify(noteData),
+        credentials: 'include' // Wymagane dla Sanctum
+    })
+    .then(async response => {
+        let jsonData;
+        try {
+            jsonData = await response.json(); // Parsowanie JSON
+        } catch (error) {
+            console.error("[dashboard-api.js] Niepoprawny format odpowiedzi z API:", error);
+            return Promise.reject({ message: "Niepoprawny format odpowiedzi z API." });
+        }
+
+        if (!response.ok) {
+            console.error(`[dashboard-api.js] Błąd API: ${response.status}`, jsonData);
+            return Promise.reject(jsonData);
+        }
+
+        return jsonData;
+    })
+    .catch(error => {
+        console.error('[dashboard-api.js] Błąd podczas zapisywania notatki:', error);
+        return Promise.reject(error);
+    });
 };
 
-// Pobiera znajomych użytkownika
-window.fetchFriendsFromAPI = function () {
-    const authToken = localStorage.getItem('auth_token');
 
-    return fetch('/api/friends', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        }
+// 📌 Pobiera znajomych użytkownika
+window.fetchFriendsFromAPI = function () {
+    return fetch('/api/friends', { 
+        method: 'GET', 
+        headers: getAuthHeaders(),
+        credentials: 'include'
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error(`Błąd HTTP! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Błąd HTTP! Status: ${response.status}`);
         return response.json();
     })
     .catch(error => {
         console.error('[dashboard-api.js] Błąd podczas ładowania znajomych:', error);
-        return Promise.reject(error); 
+        return Promise.reject(error);
     });
 };
 
-// Pobiera szczegóły jednej notatki
+// 📌 Pobiera szczegóły jednej notatki
 window.fetchNoteFromAPI = function (noteId) {
-    const authToken = localStorage.getItem('auth_token');
+    console.log(`[dashboard-api.js] Pobieranie notatki o ID: ${noteId}`);
 
-    return fetch(`/api/notes/${noteId}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        }
+    return fetch(`/api/notes/${noteId}`, { 
+        method: 'GET', 
+        headers: getAuthHeaders(),
+        credentials: 'include'
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error(`Błąd pobierania notatki: ${response.status}`);
-        }
-        return response.json();
-    })
-    .catch(error => {
-        console.error('[dashboard-api.js] Błąd podczas ładowania notatki:', error);
-        alert('Nie udało się pobrać notatki.');
-    });
-};
-
-// Usuwa notatkę
-window.deleteNoteFromAPI = function (noteId) {
-    const authToken = localStorage.getItem('auth_token');
-    if (!authToken) {
-        console.error('[dashboard-api.js] Brak tokena uwierzytelniającego');
-        alert('Nie można wykonać żądania: brak tokena autoryzacji.');
-        return Promise.reject('Brak tokena');
-    }
-
-    return fetch(`/api/notes/${noteId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${authToken}` }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Błąd pobierania notatki: ${response.status}`);
         return response.json();
     })
     .then(data => {
-        console.log('[dashboard-api.js] Notatka usunięta:', data);
-        return Promise.resolve(data); 
+        console.log(`[dashboard-api.js] Odpowiedź API dla notatki ID ${noteId}:`, data);
+        return data;
     })
     .catch(error => {
-        console.error('[dashboard-api.js] Błąd podczas usuwania notatki:', error.message);
-        alert('Nie udało się usunąć notatki.');
-        return Promise.reject(error); 
+        console.error(`[dashboard-api.js] Błąd podczas ładowania notatki ${noteId}:`, error);
+        return Promise.reject(error);
     });
 };
 
-// Pobiera wszystkie notatki zalogowanego użytkownika
-window.fetchUserNotesFromAPI = function () {
-    const authToken = localStorage.getItem('auth_token');
-    if (!authToken) {
-        console.error('[dashboard-api.js] Brak tokena autoryzacyjnego.');
-        alert('Nie można pobrać notatek: brak autoryzacji.');
-        return Promise.reject('Brak tokena');
-    }
-
-    return fetch('/api/notes', { // API do pobierania notatek
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        }
+// 📌 Usuwanie notatki
+window.deleteNoteFromAPI = function (noteId) {
+    return fetch(`/api/notes/${noteId}`, { 
+        method: 'DELETE', 
+        headers: getAuthHeaders(),
+        credentials: 'include'
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error(`Błąd HTTP! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+    })
+    .catch(error => {
+        console.error('[dashboard-api.js] Błąd podczas usuwania notatki:', error);
+        return Promise.reject(error);
+    });
+};
+
+// 📌 Pobiera wszystkie notatki zalogowanego użytkownika
+window.fetchUserNotesFromAPI = function () {
+    return fetch('/api/notes', { 
+        method: 'GET', 
+        headers: getAuthHeaders(),
+        credentials: 'include'
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`Błąd HTTP! Status: ${response.status}`);
         return response.json();
     })
     .catch(error => {

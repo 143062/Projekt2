@@ -7,18 +7,13 @@
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400">
-
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header">
-        <img 
-        src="<?php echo htmlspecialchars($user['profile_picture'] ?? '/img/profile/default/default_profile_picture.jpg'); ?>" 
-        alt="Profile" 
-        class="profile-icon" 
-        onclick="location.href='/profile'">
-
+            <img id="profile-picture" src="/img/profile/default/default_profile_picture.jpg" 
+                 alt="Profile" class="profile-icon" onclick="location.href='/profile'">
 
             <div class="search-bar">
                 <img src="/img/search_dark.svg" alt="Szukaj">
@@ -26,6 +21,7 @@
             </div>
             <img src="/img/logo.svg" alt="Logo" class="logo">
         </div>
+
 
         <!-- Notes Section -->
         <div class="notes-section">
@@ -35,19 +31,11 @@
                     <span class="material-symbols-outlined">hide</span>
                 </span>
             </h2>
-
             <div class="notes-container" id="my-notes">
-                <?php if (!empty($notes)): ?>
-                    <?php foreach ($notes as $index => $note): ?>
-                        <div class="note-card" data-id="<?php echo htmlspecialchars($note->id); ?>" data-index="<?php echo $index; ?>">
-                            <h3><?php echo htmlspecialchars($note->title); ?></h3>
-                            <p><?php echo htmlspecialchars($note->content); ?></p>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p>Brak notatek do wyświetlenia.</p>
-                <?php endif; ?>
+                <p>Ładowanie notatek...</p>
             </div>
+
+
 
             <!-- Shared Notes Section -->
             <div class="shared-notes-section">

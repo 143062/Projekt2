@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const friendsListContainer = document.getElementById('friends-list');
     const searchInput = document.querySelector('.search-bar input');
     const myNotesContainer = document.getElementById('my-notes');
+    const profilePicture = document.getElementById('profile-picture');
     let friends = [];
     let editingNoteIndex = -1;
 
@@ -27,41 +28,75 @@ document.addEventListener('DOMContentLoaded', function () {
     const DESKTOP_MAX_LINES_CONTENT = 8;
 
 
+
+    
+    function loadUserProfile() {
+        fetch('/api/users/me', {
+            method: 'GET',
+            headers: Auth.attachAuthHeaders()
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("[dashboard.js] Pobieranie profilu:", data);
+            if (data.status === 'success' && data.data.profile_picture) {
+                profilePicture.src = data.data.profile_picture;
+            } else {
+                profilePicture.src = '/img/profile/default/default_profile_picture.jpg';
+            }
+        })
+        .catch(error => {
+            console.error('[dashboard.js] Błąd podczas pobierania profilu:', error);
+            profilePicture.src = '/img/profile/default/default_profile_picture.jpg';
+        });
+    }
+    
+    
+     loadUserProfile(); // Załaduj dane użytkownika
+
+    
+
+
     fetchUserNotesFromAPI().then(notes => {
         myNotesContainer.innerHTML = ''; // Czyszczenie kontenera przed dodaniem notatek
-
-        if (notes.length === 0) {
+    
+        if (!notes || notes.length === 0) {  // Obsługa null i pustej tablicy
             myNotesContainer.innerHTML = '<p>Brak notatek do wyświetlenia.</p>';
-        } else {
-            notes.forEach((note, index) => {
-                const noteCard = document.createElement('div');
-                noteCard.className = 'note-card';
-                noteCard.setAttribute('data-id', note.id);
-                noteCard.setAttribute('data-index', index);
-                noteCard.innerHTML = `
-                    <h3>${note.title}</h3>
-                    <p>${note.content}</p>
-                `;
-                noteCard.addEventListener('click', function () {
-                    showNoteModal(noteCard, index);
-                });
-
-                myNotesContainer.appendChild(noteCard);
-            });
+            return;
         }
+    
+        notes.forEach((note, index) => {
+            if (document.querySelector(`.note-card[data-id="${note.id}"]`)) {
+                return; // Uniknięcie duplikatów (np. przy paginacji)
+            }
+    
+            const noteCard = document.createElement('div');
+            noteCard.className = 'note-card';
+            noteCard.dataset.id = note.id;
+            noteCard.dataset.index = index;
+            noteCard.innerHTML = `
+                <h3>${note.title}</h3>
+                <p>${note.content}</p>
+            `;
+            noteCard.addEventListener('click', function () {
+                showNoteModal(noteCard, index);
+            });
+    
+            myNotesContainer.appendChild(noteCard);
+        });
     }).catch(error => {
         console.error('[dashboard.js] Błąd podczas pobierania notatek:', error);
     });
-
-
+    
+    
     myNotesContainer.addEventListener('click', function (event) {
-        const noteCard = event.target.closest('.note-card'); // Sprawdza, czy kliknięty element to `.note-card`
+        const noteCard = event.target.closest('.note-card');
         if (noteCard) {
-            const index = Array.from(myNotesContainer.children).indexOf(noteCard);
-            showNoteModal(noteCard, index);
+            const index = [...myNotesContainer.children].indexOf(noteCard);
+            if (index !== -1) {
+                showNoteModal(noteCard, index);
+            }
         }
     });
-
 
 
 
@@ -135,59 +170,59 @@ saveNoteButton.addEventListener('click', function () {
     console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
 
     saveNoteToAPI(noteData, noteId)
-    .then(({ status, body }) => {
+    .then(body => {
         console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", body);
 
-        if (status >= 200 && status < 300) {
-            noteFormContainer.style.display = 'none';
+        if (!body || !body.status || body.status !== "success") {
+            console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", body?.message || "Nieznany błąd.");
+            return;
+        }
 
-            if (!noteId) {  // Nowa notatka
-                const noteIndex = document.querySelectorAll('.note-card').length;
-                const noteCard = document.createElement('div');
-                noteCard.className = 'note-card';
-                noteCard.setAttribute('data-index', noteIndex);
-                noteCard.setAttribute('data-id', body.id);
+        noteFormContainer.style.display = 'none';
 
-                noteCard.innerHTML = `
-                    <h3>${title}</h3>
-                    <p>${content}</p>
-                `;
-                noteCard.addEventListener('click', function () {
-                    showNoteModal(noteCard, noteIndex);
-                });
+        if (!noteId) {  // Nowa notatka
+            const noteIndex = document.querySelectorAll('.note-card').length;
+            const noteCard = document.createElement('div');
+            noteCard.className = 'note-card';
+            noteCard.setAttribute('data-index', noteIndex);
+            noteCard.setAttribute('data-id', body.note_id);
 
-                myNotesContainer.appendChild(noteCard);
+            noteCard.innerHTML = `
+                <h3>${title}</h3>
+                <p>${content}</p>
+            `;
+            noteCard.addEventListener('click', function () {
+                showNoteModal(noteCard, noteIndex);
+            });
 
-                const noNotesMessage = document.querySelector('#my-notes p');
-                if (noNotesMessage) {
-                    noNotesMessage.style.display = 'none';
-                }
+            myNotesContainer.appendChild(noteCard);
 
-                truncateText(noteCard);
-
-            } else {  // Edytowana notatka
-                const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
-                if (noteCard) {
-                    noteCard.querySelector('h3').textContent = title;
-                    noteCard.querySelector('p').textContent = content;
-                    truncateText(noteCard);
-                } else {
-                    console.error(`[dashboard.js] Nie znaleziono notatki o indexie: ${editingNoteIndex}`);
-                }
+            const noNotesMessage = document.querySelector('#my-notes p');
+            if (noNotesMessage) {
+                noNotesMessage.style.display = 'none';
             }
 
-            noteTitle.value = '';
-            noteContent.value = '';
-            sharedWithContainer.innerHTML = '';
-            friends = [];
-            editingNoteIndex = -1;
-            modalNoteTitle.dataset.id = '';
-        } else {
-            console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", body.message);
+            truncateText(noteCard);
+
+        } else {  // Edytowana notatka
+            const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
+            if (noteCard) {
+                noteCard.querySelector('h3').textContent = title;
+                noteCard.querySelector('p').textContent = content;
+                truncateText(noteCard);
+            }
         }
+
+        noteTitle.value = '';
+        noteContent.value = '';
+        sharedWithContainer.innerHTML = '';
+        friends = [];
+        editingNoteIndex = -1;
+        modalNoteTitle.dataset.id = '';
+
     })
     .catch(error => {
-        console.error('[dashboard.js] Błąd podczas dodawania notatki:', error);
+        console.error('[dashboard.js] Błąd podczas dodawania notatki:', error?.message || "Nieznany błąd.");
     });
 });
 

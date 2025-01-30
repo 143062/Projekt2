@@ -19,6 +19,8 @@ const Auth = {
         const token = this.getToken();
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
+        } else {
+            console.error("[auth.js] Brak tokena autoryzacji.");
         }
         return headers;
     },
