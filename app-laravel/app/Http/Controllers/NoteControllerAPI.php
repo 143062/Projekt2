@@ -202,39 +202,73 @@ class NoteControllerAPI extends Controller
         /**
      * Udostępnianie notatki innemu użytkownikowi.
      */
-    public function share(Request $request, $id)
-    {
-        Log::info('Udostępnianie notatki', [
-            'note_id' => $id,
-            'shared_with' => $request->input('shared_with')
-        ]);
-    
+ /**
+ * Udostępnianie notatki innemu użytkownikowi.
+ */
+public function share(Request $request, $id)
+{
+    Log::info('📤 Otrzymano żądanie udostępnienia notatki', [
+        'note_id' => $id,
+        'shared_with' => $request->input('shared_with')
+    ]);
+
+    // 📌 Walidacja danych wejściowych
+    try {
         $validatedData = $request->validate([
-            'shared_with' => 'required|array',
+            'shared_with' => 'required|array|min:1',
             'shared_with.*' => 'uuid|exists:users,id',
         ]);
-    
-        try {
-            SharedNote::where('note_id', $id)->delete(); // Usunięcie starych wpisów
-    
-            foreach ($validatedData['shared_with'] as $userId) {
-                SharedNote::create([
-                    'note_id' => $id,
-                    'user_id' => $userId,
-                ]);
-            }
-    
-            Log::info('Notatka została udostępniona poprawnie', [
-                'note_id' => $id,
-                'users' => $validatedData['shared_with']
-            ]);
-    
-            return response()->json(['status' => 'success', 'message' => 'Notatka została udostępniona.']);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas udostępniania notatki', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
-        }
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        Log::warning("⚠️ Błąd walidacji danych udostępniania", ['errors' => $e->errors()]);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Błąd walidacji danych wejściowych.',
+            'errors' => $e->errors(),
+        ], 422);
     }
+
+    try {
+        // 📌 Sprawdzenie, czy notatka istnieje
+        $note = Note::find($id);
+        if (!$note) {
+            Log::error("❌ Notatka nie istnieje", ['note_id' => $id]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Notatka nie istnieje.',
+            ], 404);
+        }
+
+        Log::info('🗑️ Usuwanie poprzednich wpisów o udostępnieniu', ['note_id' => $id]);
+        SharedNote::where('note_id', $id)->delete(); // Usunięcie starych wpisów
+
+        // 📌 Tworzenie nowych wpisów
+        $sharedUsers = [];
+        foreach ($validatedData['shared_with'] as $userId) {
+            SharedNote::create([
+                'note_id' => $id,
+                'user_id' => $userId,
+            ]);
+            $sharedUsers[] = $userId;
+        }
+
+        Log::info('✅ Notatka została udostępniona poprawnie', [
+            'note_id' => $id,
+            'users' => $sharedUsers
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notatka została udostępniona.',
+        ], 200);
+    } catch (\Exception $e) {
+        Log::error('❌ Błąd podczas udostępniania notatki', ['error' => $e->getMessage()]);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Wystąpił błąd podczas udostępniania notatki.',
+        ], 500);
+    }
+}
+
     
 
 

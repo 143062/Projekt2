@@ -190,82 +190,99 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-// Zapisanie notatki (nowej lub edytowanej)
-saveNoteButton.addEventListener('click', function () {
-    const title = noteTitle.value.trim();
-    const content = noteContent.value.trim();
-
-    if (title === '' && content === '') {
-        console.error('[dashboard.js] Nie można dodać pustej notatki');
-        return;
-    }
-
-    const noteData = {
-        title: title,
-        content: content,
-        shared_with: friends.map(friend => friend.id)
-    };
-
-    const noteId = modalNoteTitle.dataset.id;
-
-    console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
-
-    saveNoteToAPI(noteData, noteId)
-    .then(body => {
-        console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", body);
-
-        if (!body || !body.status || body.status !== "success") {
-            console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", body?.message || "Nieznany błąd.");
+    saveNoteButton.addEventListener('click', function () {
+        const title = noteTitle.value.trim();
+        const content = noteContent.value.trim();
+    
+        if (title === '' && content === '') {
+            console.error('[dashboard.js] Nie można dodać pustej notatki');
             return;
         }
-
-        noteFormContainer.style.display = 'none';
-
-        if (!noteId) {  // Nowa notatka
-            const noteIndex = document.querySelectorAll('.note-card').length;
-            const noteCard = document.createElement('div');
-            noteCard.className = 'note-card';
-            noteCard.setAttribute('data-index', noteIndex);
-            noteCard.setAttribute('data-id', body.note_id);
-
-            noteCard.innerHTML = `
-                <h3>${title}</h3>
-                <p>${content}</p>
-            `;
-            noteCard.addEventListener('click', function () {
-                showNoteModal(noteCard, noteIndex);
-            });
-
-            myNotesContainer.appendChild(noteCard);
-
-            const noNotesMessage = document.querySelector('#my-notes p');
-            if (noNotesMessage) {
-                noNotesMessage.style.display = 'none';
-            }
-
-            truncateText(noteCard);
-
-        } else {  // Edytowana notatka
-            const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
-            if (noteCard) {
-                noteCard.querySelector('h3').textContent = title;
-                noteCard.querySelector('p').textContent = content;
-                truncateText(noteCard);
-            }
+    
+        const noteData = {
+            title: title,
+            content: content,
+        };
+    
+        const sharedFriends = friends.map(friend => friend.id);
+        if (sharedFriends.length > 0) {
+            noteData.shared_with = sharedFriends;
         }
-
-        noteTitle.value = '';
-        noteContent.value = '';
-        sharedWithContainer.innerHTML = '';
-        friends = [];
-        editingNoteIndex = -1;
-        modalNoteTitle.dataset.id = '';
-
-    })
-    .catch(error => {
-        console.error('[dashboard.js] Błąd podczas dodawania notatki:', error?.message || "Nieznany błąd.");
+    
+        const noteId = modalNoteTitle.dataset.id;
+    
+        console.log("[dashboard.js] Wysyłanie danych notatki:", noteData);
+    
+        saveNoteToAPI(noteData, noteId)
+            .then(body => {
+                console.log("[dashboard.js] Otrzymano odpowiedź z serwera:", body);
+    
+                if (!body || !body.status || body.status !== "success") {
+                    console.error("[dashboard.js] Błąd podczas zapisywania notatki. Szczegóły:", body?.message || "Nieznany błąd.");
+                    return;
+                }
+    
+                noteFormContainer.style.display = 'none';
+    
+                // Udostępnienie notatki po zapisaniu, jeśli wybrano znajomych
+                if (!noteId && sharedFriends.length > 0) {
+                    console.log(`[dashboard.js] Udostępnianie nowo utworzonej notatki ID: ${body.note_id} znajomym:`, sharedFriends);
+    
+                    shareNoteToAPI(body.note_id, sharedFriends)
+                        .then(shareResponse => {
+                            console.log("[dashboard.js] Odpowiedź API na udostępnienie:", shareResponse);
+                        })
+                        .catch(error => {
+                            console.error("[dashboard.js] Błąd podczas udostępniania notatki:", error);
+                        });
+                }
+    
+                if (!noteId) {  // Nowa notatka
+                    const noteIndex = document.querySelectorAll('.note-card').length;
+                    const noteCard = document.createElement('div');
+                    noteCard.className = 'note-card';
+                    noteCard.setAttribute('data-index', noteIndex);
+                    noteCard.setAttribute('data-id', body.note_id);
+    
+                    noteCard.innerHTML = `
+                        <h3>${title}</h3>
+                        <p>${content}</p>
+                    `;
+                    noteCard.addEventListener('click', function () {
+                        showNoteModal(noteCard, noteIndex);
+                    });
+    
+                    myNotesContainer.appendChild(noteCard);
+    
+                    const noNotesMessage = document.querySelector('#my-notes p');
+                    if (noNotesMessage) {
+                        noNotesMessage.style.display = 'none';
+                    }
+    
+                    truncateText(noteCard);
+                } else {  // Edytowana notatka
+                    const noteCard = document.querySelector(`.note-card[data-index="${editingNoteIndex}"]`);
+                    if (noteCard) {
+                        noteCard.querySelector('h3').textContent = title;
+                        noteCard.querySelector('p').textContent = content;
+                        truncateText(noteCard);
+                    }
+                }
+    
+                noteTitle.value = '';
+                noteContent.value = '';
+                sharedWithContainer.innerHTML = '';
+                friends = [];
+                editingNoteIndex = -1;
+                modalNoteTitle.dataset.id = '';
+    
+            })
+            .catch(error => {
+                console.error('[dashboard.js] Błąd podczas dodawania notatki:', error?.message || "Nieznany błąd.");
+            });
     });
-});
+    
+
 
     
 
