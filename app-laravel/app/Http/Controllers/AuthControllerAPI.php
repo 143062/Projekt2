@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\SendWelcomeEmail;
 
 class AuthControllerAPI extends Controller
 {
@@ -76,7 +77,10 @@ class AuthControllerAPI extends Controller
             $user->tokens()->delete();
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            Log::info('Rejestracja zakończona sukcesem', ['user_id' => $user->id]);
+            // 📌 **Dodanie zadania do kolejki RabbitMQ**
+            dispatch(new SendWelcomeEmail($user));
+
+            Log::info('Rejestracja zakończona sukcesem, email powitalny wysłany do kolejki', ['user_id' => $user->id]);
 
             return response()->json([
                 'message' => 'Rejestracja zakończona sukcesem',
@@ -95,6 +99,14 @@ class AuthControllerAPI extends Controller
             ], 500);
         }
     }
+
+
+
+
+
+
+
+
 
     /**
      * @OA\Post(

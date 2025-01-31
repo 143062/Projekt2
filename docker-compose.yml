@@ -21,8 +21,16 @@ services:
     volumes:
       - ./app-laravel:/app-laravel
     working_dir: /app-laravel
+    depends_on:
+      - rabbitmq  # Laravel powinien uruchomić się po RabbitMQ
     networks:
       - app-network
+    environment:
+      - QUEUE_CONNECTION=rabbitmq
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
 
   db:
     image: postgres:latest
@@ -45,6 +53,32 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"  # Port dla komunikacji RabbitMQ
+      - "15672:15672" # Panel administracyjny RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./app-laravel:/app-laravel
+    working_dir: /app-laravel
+    command: php artisan queue:work --tries=3 --timeout=90
+    depends_on:
+      - php
+      - rabbitmq
     networks:
       - app-network
 

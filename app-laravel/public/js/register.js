@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const responseData = await response.json();
                 if (!response.ok) throw new Error(responseData.message || 'Błąd rejestracji.');
 
-                alert('Rejestracja zakończona sukcesem!');
+
                 window.location.href = '/login';
             })
             .catch((error) => {
