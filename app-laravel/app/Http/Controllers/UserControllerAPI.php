@@ -123,6 +123,8 @@ class UserControllerAPI extends Controller
      * @OA\Post(
      *     path="/api/users/me/profile-picture",
      *     summary="Aktualizacja zdjęcia profilowego użytkownika",
+     *     description="Użytkownik może przesłać nowe zdjęcie profilowe. Jeśli miał niestandardowe zdjęcie, stare zostanie usunięte. 
+     *                  Domyślne zdjęcie (`default_profile_picture.jpg`) nigdy nie jest usuwane.",
      *     tags={"Users"},
      *     security={{"sanctum": {}}},
      *     @OA\RequestBody(
@@ -130,7 +132,7 @@ class UserControllerAPI extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 @OA\Property(property="profile_picture", type="string", format="binary")
+     *                 @OA\Property(property="profile_picture", type="string", format="binary", description="Plik obrazu (jpg, png, gif)")
      *             )
      *         )
      *     ),

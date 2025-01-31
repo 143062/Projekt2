@@ -94,6 +94,7 @@
                     "Admin"
                 ],
                 "summary": "Usuwanie użytkownika",
+                "description": "Usuwa użytkownika oraz jego folder ze zdjęciem profilowym, jeśli istnieje. Domyślne zdjęcie profilowe nie jest usuwane.",
                 "operationId": "7da83cb197359d23440e747c21e4a31e",
                 "parameters": [
                     {
@@ -102,7 +103,7 @@
                         "description": "ID użytkownika do usunięcia",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -688,6 +689,7 @@
                     "Users"
                 ],
                 "summary": "Aktualizacja zdjęcia profilowego użytkownika",
+                "description": "Użytkownik może przesłać nowe zdjęcie profilowe. Jeśli miał niestandardowe zdjęcie, stare zostanie usunięte. \r\n     *                  Domyślne zdjęcie (`default_profile_picture.jpg`) nigdy nie jest usuwane.",
                 "operationId": "048354cf6daf0fba6f8b4dd3a7931f34",
                 "requestBody": {
                     "required": true,
@@ -696,6 +698,7 @@
                             "schema": {
                                 "properties": {
                                     "profile_picture": {
+                                        "description": "Plik obrazu (jpg, png, gif)",
                                         "type": "string",
                                         "format": "binary"
                                     }

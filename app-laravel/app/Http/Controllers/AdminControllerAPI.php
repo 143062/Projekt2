@@ -48,7 +48,7 @@ class AdminControllerAPI extends Controller
     }
 
 
-    /**
+   /**
      * @OA\Post(
      *     path="/api/admin/users",
      *     summary="Dodawanie użytkownika",
@@ -101,96 +101,84 @@ class AdminControllerAPI extends Controller
     }
 
 
-    /**
-     * @OA\Delete(
-     *     path="/api/admin/users/{id}",
-     *     summary="Usuwanie użytkownika",
-     *     tags={"Admin"},
-     *     security={{"sanctum": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="ID użytkownika do usunięcia",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Użytkownik został usunięty"),
-     *     @OA\Response(response=403, description="Brak uprawnień"),
-     *     @OA\Response(response=404, description="Użytkownik nie istnieje")
-     * )
-     */
-    public function deleteUser($id)
-    {
-        Log::info("🗑️ Otrzymano żądanie usunięcia użytkownika", ['user_id' => $id]);
-    
-        if ($error = $this->checkAdmin()) {
-            return $error;
-        }
-    
-        try {
-            // 📌 Sprawdzenie, czy użytkownik istnieje
-            $user = User::find($id);
-            if (!$user) {
-                Log::error("❌ Użytkownik nie istnieje", ['user_id' => $id]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Użytkownik nie istnieje.',
-                ], 404);
-            }
-    
-            // 📌 Usuwanie folderu użytkownika z `public/img/profile/`
-            $userFolder = public_path("img/profile/$id");
-            if (file_exists($userFolder)) {
-                $this->deleteDirectory($userFolder);
-                Log::info("✅ Usunięto folder użytkownika", ['user_folder' => $userFolder]);
-            } else {
-                Log::info("ℹ️ Folder użytkownika nie istnieje, pomijam usuwanie", ['user_folder' => $userFolder]);
-            }
-    
-            // 📌 Usuwanie użytkownika
-            $user->delete();
-            Log::info("✅ Użytkownik usunięty pomyślnie", ['user_id' => $id]);
-    
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Użytkownik został usunięty.',
-            ], 200);
-    
-        } catch (\Exception $e) {
-            Log::error("❌ Błąd podczas usuwania użytkownika", ['error' => $e->getMessage()]);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Nie udało się usunąć użytkownika.',
-            ], 500);
-        }
-    }
-    
-
 
 /**
- * Usuwa folder użytkownika wraz z jego zawartością.
+ * @OA\Delete(
+ *     path="/api/admin/users/{id}",
+ *     summary="Usuwanie użytkownika",
+ *     description="Usuwa użytkownika oraz jego folder ze zdjęciem profilowym, jeśli istnieje. Domyślne zdjęcie profilowe nie jest usuwane.",
+ *     tags={"Admin"},
+ *     security={{"sanctum": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID użytkownika do usunięcia",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(response=200, description="Użytkownik został usunięty"),
+ *     @OA\Response(response=403, description="Brak uprawnień"),
+ *     @OA\Response(response=404, description="Użytkownik nie istnieje")
+ * )
  */
-private function deleteDirectory($dir)
+public function deleteUser($id)
 {
-    if (!file_exists($dir)) {
-        return;
+    Log::info("🗑️ Otrzymano żądanie usunięcia użytkownika", ['user_id' => $id]);
+
+    if ($error = $this->checkAdmin()) {
+        return $error;
     }
 
-    foreach (scandir($dir) as $file) {
-        if ($file === '.' || $file === '..') {
-            continue;
+    try {
+        // 📌 Sprawdzenie, czy użytkownik istnieje
+        $user = User::find($id);
+        if (!$user) {
+            Log::error("❌ Użytkownik nie istnieje", ['user_id' => $id]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Użytkownik nie istnieje.',
+            ], 404);
         }
 
-        $filePath = "$dir/$file";
-        if (is_dir($filePath)) {
-            $this->deleteDirectory($filePath); // Rekursywne usuwanie podfolderów
+        // 📌 Usuwanie folderu użytkownika z `public/img/profile/{id}/`, jeśli istnieje
+        $userFolder = public_path("img/profile/$id");
+        if (file_exists($userFolder)) {
+            foreach (scandir($userFolder) as $file) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+
+                $filePath = "$userFolder/$file";
+                if (is_file($filePath)) {
+                    unlink($filePath); // Usunięcie pliku
+                }
+            }
+
+            rmdir($userFolder); // Usunięcie folderu użytkownika
+            Log::info("✅ Usunięto folder użytkownika", ['user_folder' => $userFolder]);
         } else {
-            unlink($filePath); // Usunięcie pliku
+            Log::info("ℹ️ Folder użytkownika nie istnieje, pomijam usuwanie", ['user_folder' => $userFolder]);
         }
-    }
 
-    rmdir($dir); // Usunięcie głównego folderu
+        // 📌 Usuwanie użytkownika
+        $user->delete();
+        Log::info("✅ Użytkownik usunięty pomyślnie", ['user_id' => $id]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Użytkownik został usunięty.',
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error("❌ Błąd podczas usuwania użytkownika", ['error' => $e->getMessage()]);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Nie udało się usunąć użytkownika.',
+        ], 500);
+    }
 }
+
+
 
 
 
@@ -267,6 +255,14 @@ private function deleteDirectory($dir)
      }
      
      
+
+
+
+
+
+
+
+
 
             /**
              * Eksport bazy danych.
