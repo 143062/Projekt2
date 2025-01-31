@@ -1,18 +1,14 @@
-# N
+  <img src="https://raw.githubusercontent.com/143062/Projekt2/main/app-laravel/public/img/logo.svg" alt="Logo" width="200">
+
 
 ## Contents
 - [App description](#app-description)
 - [Let's start!](#lets-start)
-
 - [Database](#database)
-
 - [Technologies Used](#technologies-used)
+- [Swagger Documentation](#swagger-documentation)
 - [Screenshots](#screenshots)
-
-
-
-
-
+- [Choices](#choices)
 
 
 ## App description
@@ -33,18 +29,40 @@ Move to the project's directory and run the command below:
 ```shell
 docker-compose up --build
 ```
-### 3. Import database
+### 3. Access PHP Container
 
-To import database you can just simply open your browser and paste this link:
+To access use this command:
 ```shell
-http://localhost:8080/import_database
+docker exec -it projekt2-php-1 sh
 ```
-It uses the newest database from app/Database/dumps/  
-Required file is already included in the Repository
 
-### 4. Logging in:
+### 4. Migration
 
-There are predefinied accounts already included with the imported database.
+To run miration use this command:
+```shell
+php artisan migrate:fresh
+```
+
+### 5. Seeders 
+
+Seeders are already included in the code, to run all of them use this command:
+
+```shell
+php artisan db:seed
+```
+
+However, they aren't defined perfectly, I'd recommend running only those 3 seeders for clean environment:
+
+```shell
+php artisan db:seed --class=RolesSeeder
+php artisan db:seed --class=AdminSeeder
+php artisan db:seed --class=UserSeeder
+```
+
+
+### 6. Logging in:
+
+There are predefinied accounts already included in Seeders 
 
 #### Admin Role:
 <details>
@@ -52,61 +70,21 @@ There are predefinied accounts already included with the imported database.
 
 ```shell
 Login: admin
-Password: admin
+Password: adminadmin
 ```
 
 </details>
 
 #### User Role:
 <details>
-  <summary>Scout</summary>
+  <summary>User</summary>
 
 ```shell
-Login: scout
-Password: scout
+Login: user
+Password: useruser
 ```
-
 </details>
 
-<details>
-  <summary>Heavy</summary>
-
-```shell
-Login: heavy
-Password: heavy
-```
-
-</details>
-
-<details>
-  <summary>Medic</summary>
-
-```shell
-Login: medic
-Password: medic
-```
-
-</details>
-
-<details>
-  <summary>Spy</summary>
-
-```shell
-Login: spy
-Password: spy
-```
-
-</details>
-
-<details>
-  <summary>Sniper</summary>
-
-```shell
-Login: sniper
-Password: sniper
-```
-
-</details>
 
 
 ## Database
@@ -115,10 +93,14 @@ Password: sniper
 ![ERD Diagram](https://i.imgur.com/RTKmqNq.png)
 
 ### Schema
-View [db_schema.sql](https://github.com/143062/Projekt/blob/main/Database/db_schema.sql)
+View [db_schema.sql](https://github.com/143062/Projekt2/blob/main/app-laravel/database/schema/db_schema.sql)
 
 
 ## Technologies used
+- Laravel (11.31) + Eloquent
+- Sanctum (4.0)
+- Swagger (8.6)
+- RabbitMQ (3.13.7) + Laravel-queue-rabbitmq (14.1)
 - Git
 - Docker
 - HTML
@@ -126,6 +108,14 @@ View [db_schema.sql](https://github.com/143062/Projekt/blob/main/Database/db_sch
 - JavaScript
 - PHP
 - PostgreSQL
+
+## Swagger documentation
+
+To access documentation, visit link:
+
+```shell
+http://localhost:8080/api/docs#/
+```
 
 
 ## Screenshots
@@ -140,78 +130,124 @@ View [db_schema.sql](https://github.com/143062/Projekt/blob/main/Database/db_sch
 |:-------------:|:------------:|
 |![Profile Main Desktop](https://i.imgur.com/KyRcnSp.png) | ![Profile Main Mobile](https://i.imgur.com/ZW9BFhX.png)
 
-<details>
-  <summary>Login Page</summary>
+
+### Login Page
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
   |![Login Desktop](https://i.imgur.com/rrAu8RI.png) | ![Login Mobile](https://i.imgur.com/rgNtW6l.png)
 
-</details>
 
-<details>
-  <summary>Register Page</summary>
+### Register Page
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
   |![Register Desktop](https://i.imgur.com/hs4mTUG.png) | ![Register Mobile](https://i.imgur.com/JkFYzz8.png)
 
-</details>
 
-<details>
-  <summary>Dashboard - Adding Note</summary>
+### Dashboard - Adding Note
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Adding Note Desktop](https://i.imgur.com/example.png) | ![Adding Note Mobile](https://i.imgur.com/example.png)
+  |![Adding Note Desktop](https://i.imgur.com/NX7v19K.png) | ![Adding Note Mobile](https://i.imgur.com/LiiMhfT.png)
 
-</details>
 
-<details>
-  <summary>Dashboard - Viewing Note</summary>
+### Dashboard - Viewing Note
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Viewing Note Desktop](https://i.imgur.com/example.png) | ![Viewing Note Mobile](https://i.imgur.com/example.png)
+  |![Viewing Note Desktop](https://i.imgur.com/nqb2AAj.png) | ![Viewing Note Mobile](https://i.imgur.com/RU8Nes4.png)
 
-</details>
 
-<details>
-  <summary>Dashboard - Editing Friends</summary>
+### Dashboard - Editing Friends
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Editing Friends Desktop](https://i.imgur.com/example.png) | ![Editing Friends Mobile](https://i.imgur.com/example.png)
+  |![Editing Friends Desktop](https://i.imgur.com/IBESfLB.png) | ![Editing Friends Mobile](https://i.imgur.com/GqeG1JL.png)
 
-</details>
 
-<details>
-  <summary>Profile - Managing Friends</summary>
+### Profile - Managing Friends
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Managing Friends Desktop](https://i.imgur.com/example.png) | ![Managing Friends Mobile](https://i.imgur.com/example.png)
+  |![Managing Friends Desktop](https://i.imgur.com/eb1Qyjr.png) | ![Managing Friends Mobile](https://i.imgur.com/oLq1oqa.png)
 
-</details>
 
-<details>
-  <summary>Profile - Changing Profile Picture</summary>
+### Profile - Changing Profile Picture
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Changing Profile Picture Desktop](https://i.imgur.com/example.png) | ![Changing Profile Picture Mobile](https://i.imgur.com/example.png)
+  |![Changing Profile Picture Desktop](https://i.imgur.com/3kfsxdl.png) | ![Changing Profile Picture Mobile](https://i.imgur.com/1BXJsYS.png)
 
-</details>
 
-<details>
-  <summary>Admin Panel</summary>
+
+
+### Admin Panel
 
   | Desktop       | Mobile     |
   |:-------------:|:------------:|
-  |![Admin Panel Desktop](https://i.imgur.com/example.png) | ![Admin Panel Mobile](https://i.imgur.com/example.png)
-
-</details>
+  |![Admin Panel Desktop](https://i.imgur.com/ObfIPKR.png) | ![Admin Panel Mobile](https://i.imgur.com/Rjboas2.png)
 
 
 
+## Choices
 
+The architecture, based on REST API, RabbitMQ, and containerization, makes the project modular, easy to maintain, and ready for future development. Laravel ensures stability and strong support for modern technologies.
+
+
+### CHOICE OF FRAMEWORK
+
+The project is built using Laravel as the main backend framework.
+
+Why Laravel?
+
+🔹 Eloquent ORM – A simple and efficient way to manage the database using an object-relational model.
+
+🔹 Sanctum – A built-in API authentication system, ideal for REST API integration.
+
+🔹 Modularity – Laravel allows easy feature expansion (e.g., integration with RabbitMQ).
+
+🔹 Queue & Events – Supports asynchronous tasks (e.g., sending emails after registration).
+
+🔹 Swagger – Built-in API documentation facilitates testing and development.
+
+🔹 Docker Support – Laravel works well with containerization, making environment management easier.
+
+With these features, Laravel provides fast development, stability, and easy code management.
+
+
+### JUSTIFICATION FOR ARCHITECTURAL CHOICES
+
+🔹 REST API-Based Architecture
+
+The project separates the backend (Laravel) from the frontend (pure PHP, HTML, CSS, JS).
+
+A REST API makes it easy to expand the project to other platforms (e.g., a mobile app).
+
+🔹 Separation of Responsibilities
+
+- Backend (Laravel + PostgreSQL)
+
+      Handles authentication (Sanctum).
+
+      Manages users, notes, and friends.
+
+      Uses RabbitMQ for task queuing (e.g., sending emails).
+
+- Frontend (Pure PHP, HTML, JS, CSS)
+
+      Communicates with the API using AJAX / Fetch API.
+
+      No frontend frameworks for simplicity and performance.
+
+🔹 Handling Asynchronous Tasks
+
+RabbitMQ is used for sending emails after registration, preventing backend blocking.
+
+Queues allow efficient handling of a large number of users in the future.
+
+🔹 Containerization (Docker)
+
+Docker + docker-compose ensures easy environment setup.
+
+Separate containers for PHP, PostgreSQL, Nginx, RabbitMQ, improving scalability.
