@@ -10,7 +10,14 @@ use Illuminate\Support\Facades\Log;
 class NoteControllerAPI extends Controller
 {
     /**
-     * Pobieranie listy notatek użytkownika.
+     * @OA\Get(
+     *     path="/api/notes",
+     *     summary="Pobieranie listy notatek użytkownika",
+     *     tags={"Notes"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Lista notatek"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
     public function index(Request $request)
     {
@@ -28,7 +35,22 @@ class NoteControllerAPI extends Controller
     }
 
     /**
-     * Tworzenie nowej notatki (alias dla storeOrUpdate).
+     * @OA\Post(
+     *     path="/api/notes",
+     *     summary="Tworzenie nowej notatki",
+     *     tags={"Notes"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "content"},
+     *             @OA\Property(property="title", type="string", example="Nowa notatka"),
+     *             @OA\Property(property="content", type="string", example="Treść notatki")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Notatka została utworzona"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
     public function store(Request $request)
     {
@@ -36,73 +58,90 @@ class NoteControllerAPI extends Controller
     }
 
     /**
-     * Tworzenie lub edycja notatki.
+     * @OA\Put(
+     *     path="/api/notes/{id}",
+     *     summary="Edycja notatki",
+     *     tags={"Notes"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID notatki do edycji",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "content"},
+     *             @OA\Property(property="title", type="string", example="Zaktualizowana notatka"),
+     *             @OA\Property(property="content", type="string", example="Nowa treść notatki")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Notatka została zaktualizowana"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
-/**
- * Tworzenie lub edycja notatki.
- */
-public function storeOrUpdate(Request $request, $id = null)
-{
-    $validatedData = $request->validate([
-        'title' => 'required|string|max:255',
-        'content' => 'required|string',
-    ]);
+    public function storeOrUpdate(Request $request, $id = null)
+    {
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
 
-    try {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if ($id) {
-            $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
-            $note->update([
-                'title' => $validatedData['title'],
-                'content' => $validatedData['content'],
-            ]);
-        } else {
-            // Tworzenie nowej notatki i przypisanie jej do zmiennej
-            $note = Note::create([
-                'user_id' => $user->id,
-                'title' => $validatedData['title'],
-                'content' => $validatedData['content'],
-            ]);
-        }
-
-        // 📌 Logujemy ID nowej notatki
-        Log::info('Nowa notatka zapisana w bazie', ['note_id' => $note->id]);
-
-        // 📌 Czy obsługa udostępniania działa?
-        if ($request->has('shared_with')) {
-            Log::info("Udostępnianie notatki", ['note_id' => $note->id, 'shared_with' => $request->input('shared_with')]);
-            
-            SharedNote::where('note_id', $note->id)->delete(); // Usunięcie starych wpisów
-            foreach ($request->input('shared_with') as $friendId) {
-                SharedNote::create([
-                    'note_id' => $note->id,
-                    'user_id' => $friendId,
+            if ($id) {
+                $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+                $note->update([
+                    'title' => $validatedData['title'],
+                    'content' => $validatedData['content'],
+                ]);
+            } else {
+                $note = Note::create([
+                    'user_id' => $user->id,
+                    'title' => $validatedData['title'],
+                    'content' => $validatedData['content'],
                 ]);
             }
+
+            Log::info('Notatka zapisana w bazie', ['note_id' => $note->id]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.',
+                'note_id' => $note->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas tworzenia/edycji notatki', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => $id ? 'Notatka została zaktualizowana.' : 'Notatka została utworzona.',
-            'note_id' => $note->id, 
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Błąd podczas tworzenia/edycji notatki', ['error' => $e->getMessage()]);
-        return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
     }
-}
-
 
 
     /**
-     * Usuwanie notatki.
+     * @OA\Delete(
+     *     path="/api/notes/{id}",
+     *     summary="Usuwanie notatki",
+     *     tags={"Notes"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID notatki do usunięcia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Notatka została usunięta"),
+     *     @OA\Response(response=404, description="Nie znaleziono notatki"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
     public function destroy(Request $request, $id)
     {
         try {
             $user = $request->user();
-
             $note = Note::where('id', $id)->where('user_id', $user->id)->firstOrFail();
             $note->delete();
 
@@ -115,7 +154,52 @@ public function storeOrUpdate(Request $request, $id = null)
         }
     }
 
+
     /**
+     * @OA\Get(
+     *     path="/api/notes/shared",
+     *     summary="Pobieranie współdzielonych notatek",
+     *     tags={"Notes"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Lista współdzielonych notatek"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
+     */
+    public function sharedNotes(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $notes = Note::whereHas('sharedWith', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->with('user:id,login')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            Log::info('Współdzielone notatki:', ['notes' => $notes]);
+
+            return response()->json($notes->map(function ($note) {
+                return [
+                    'id' => $note->id,
+                    'title' => $note->title,
+                    'content' => $note->content,
+                    'owner_login' => $note->user->login,
+                ];
+            }));
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas pobierania współdzielonych notatek', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
+        }
+    }
+
+
+
+
+
+    
+
+        /**
      * Udostępnianie notatki innemu użytkownikowi.
      */
     public function share(Request $request, $id)
@@ -153,37 +237,7 @@ public function storeOrUpdate(Request $request, $id = null)
     }
     
 
-    /**
-     * Pobieranie współdzielonych notatek.
-     */
-    public function sharedNotes(Request $request)
-    {
-        try {
-            $user = $request->user();
-    
-            $notes = Note::whereHas('sharedWith', function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
-                })
-                ->with('user:id,login') // Pobieranie właściciela notatki
-                ->orderBy('created_at', 'asc')
-                ->get();
-    
-            Log::info('Współdzielone notatki:', ['notes' => $notes]);
-    
-            return response()->json($notes->map(function ($note) {
-                return [
-                    'id' => $note->id,
-                    'title' => $note->title,
-                    'content' => $note->content,
-                    'owner_login' => $note->user->login, // Dodanie loginu właściciela
-                ];
-            }));
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas pobierania współdzielonych notatek', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Wystąpił błąd.'], 500);
-        }
-    }
-    
+
     
 
     /**

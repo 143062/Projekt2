@@ -9,6 +9,23 @@ use App\Http\Controllers\NoteControllerAPI;
 use App\Http\Controllers\TestControllerAPI;
 use App\Http\Controllers\UserControllerAPI;
 
+
+/**
+ * @OA\Info(
+ *     title="API Notatek",
+ *     version="1.0.0",
+ *     description="Dokumentacja API dla systemu notatek",
+ *     @OA\Contact(
+ *         email="admin@example.com"
+ *     )
+ * )
+ *
+ * @OA\Server(
+ *     url="http://localhost:8080/api",
+ *     description="API lokalne"
+ * )
+ */
+
 // 🔹 Trasa testowa
 Route::get('/ping', fn() => response()->json(['message' => 'API działa!']));
 

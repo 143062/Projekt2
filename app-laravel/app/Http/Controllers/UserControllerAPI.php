@@ -8,24 +8,27 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Note;
 use App\Models\Role;
-
 use Illuminate\Support\Facades\Storage;
 
 class UserControllerAPI extends Controller
 {
     /**
-     * Pobieranie profilu zalogowanego użytkownika.
-     * Endpoint: GET /api/users/me
+     * @OA\Get(
+     *     path="/api/users/me",
+     *     summary="Pobieranie profilu zalogowanego użytkownika",
+     *     tags={"Users"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Dane użytkownika"),
+     *     @OA\Response(response=401, description="Nieautoryzowany dostęp")
+     * )
      */
     public function getProfile(Request $request)
     {
         $user = $request->user();
-    
-        // Ustawienie domyślnego zdjęcia, jeśli użytkownik go nie ma
         $profilePicture = $user->profile_picture && file_exists(public_path($user->profile_picture)) 
             ? asset($user->profile_picture) 
             : asset('img/profile/default/default_profile_picture.jpg');
-    
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -36,24 +39,28 @@ class UserControllerAPI extends Controller
             ]
         ]);
     }
-    
 
     /**
-     * Wyświetlanie dashboardu użytkownika (notatki i współdzielone notatki).
-     * Endpoint: GET /api/users/dashboard
+     * @OA\Get(
+     *     path="/api/users/dashboard",
+     *     summary="Wyświetlanie dashboardu użytkownika",
+     *     tags={"Users"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Dane użytkownika i jego notatki"),
+     *     @OA\Response(response=401, description="Nieautoryzowany dostęp")
+     * )
      */
     public function getDashboard(Request $request)
     {
-        $user = $request->user(); // Pobranie zalogowanego użytkownika
-
+        $user = $request->user();
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'Nie jesteś zalogowany.'], 401);
         }
 
-        $notes = $user->notes()->get(); // Notatki użytkownika
+        $notes = $user->notes()->get();
         $sharedNotes = Note::whereHas('sharedUsers', function ($query) use ($user) {
             $query->where('id', $user->id);
-        })->get(); // Współdzielone notatki
+        })->get();
 
         return response()->json([
             'status' => 'success',
@@ -65,6 +72,117 @@ class UserControllerAPI extends Controller
         ], 200);
     }
 
+
+
+
+
+
+
+    /**
+     * @OA\Put(
+     *     path="/api/users/me",
+     *     summary="Aktualizacja profilu użytkownika",
+     *     tags={"Users"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="user@example.com"),
+     *             @OA\Property(property="login", type="string", example="newuser"),
+     *             @OA\Property(property="password", type="string", example="newsecurepassword")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Profil zaktualizowany pomyślnie"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $validatedData = $request->validate([
+            'email' => 'nullable|email|unique:users,email|max:255',
+            'login' => 'nullable|string|unique:users,login|max:100',
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        try {
+            if (isset($validatedData['password'])) {
+                $validatedData['password'] = Hash::make($validatedData['password']);
+            }
+
+            $user->update($validatedData);
+
+            return response()->json(['status' => 'success', 'message' => 'Profil zaktualizowany pomyślnie.', 'data' => $user], 200);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas aktualizacji profilu', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Nie udało się zaktualizować profilu.'], 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/users/me/profile-picture",
+     *     summary="Aktualizacja zdjęcia profilowego użytkownika",
+     *     tags={"Users"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="profile_picture", type="string", format="binary")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Zdjęcie profilowe zaktualizowane pomyślnie"),
+     *     @OA\Response(response=400, description="Nieprawidłowy format pliku"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
+     */
+    public function updateProfilePicture(Request $request)
+    {
+        $user = $request->user();
+        if (!$request->hasFile('profile_picture') || !$request->file('profile_picture')->isValid()) {
+            return response()->json(['status' => 'error', 'message' => 'Nie przesłano pliku lub plik jest nieprawidłowy.'], 400);
+        }
+
+        $file = $request->file('profile_picture');
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return response()->json(['status' => 'error', 'message' => 'Nieprawidłowy format pliku.'], 400);
+        }
+
+        $directory = public_path("img/profile/{$user->id}");
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $fileName = "profile.jpg";
+        $filePath = "img/profile/{$user->id}/{$fileName}";
+
+        if ($user->profile_picture && file_exists(public_path($user->profile_picture))) {
+            @unlink(public_path($user->profile_picture));
+        }
+
+        try {
+            $file->move($directory, $fileName);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Błąd zapisu pliku.'], 500);
+        }
+
+        $user->update(['profile_picture' => $filePath]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Zdjęcie profilowe zaktualizowane pomyślnie.',
+            'path' => asset($filePath)
+        ]);
+    }
+    
+    
+
+    
     /**
      * Rejestracja użytkownika.
      * Endpoint: POST /api/auth/register
@@ -119,87 +237,6 @@ class UserControllerAPI extends Controller
         }
     }
 
-    /**
-     * Aktualizacja profilu użytkownika.
-     * Endpoint: PUT /api/users/me
-     */
-    public function updateProfile(Request $request)
-    {
-        $user = $request->user(); // Pobranie zalogowanego użytkownika
-
-        $validatedData = $request->validate([
-            'email' => 'nullable|email|unique:users,email|max:255',
-            'login' => 'nullable|string|unique:users,login|max:100',
-            'password' => 'nullable|string|min:6|confirmed',
-        ]);
-
-        try {
-            if (isset($validatedData['password'])) {
-                $validatedData['password'] = Hash::make($validatedData['password']);
-            }
-
-            $user->update($validatedData);
-
-            return response()->json(['status' => 'success', 'message' => 'Profil zaktualizowany pomyślnie.', 'data' => $user], 200);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas aktualizacji profilu', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się zaktualizować profilu.'], 500);
-        }
-    }
-
-    /**
-     * Aktualizacja zdjęcia profilowego użytkownika.
-     */
-    public function updateProfilePicture(Request $request)
-    {
-        $user = $request->user();
-    
-        // Walidacja pliku
-        if (!$request->hasFile('profile_picture') || !$request->file('profile_picture')->isValid()) {
-            return response()->json(['status' => 'error', 'message' => 'Nie przesłano pliku lub plik jest nieprawidłowy.'], 400);
-        }
-    
-        $file = $request->file('profile_picture');
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    
-        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
-            return response()->json(['status' => 'error', 'message' => 'Nieprawidłowy format pliku.'], 400);
-        }
-    
-        // Ścieżka zapisu zdjęcia
-        $directory = public_path("img/profile/{$user->id}");
-        if (!file_exists($directory)) {
-            mkdir($directory, 0777, true);
-        }
-    
-        // Nazwa pliku
-        $fileName = "profile.jpg";
-        $filePath = "img/profile/{$user->id}/{$fileName}";
-    
-        // Usunięcie starego zdjęcia, jeśli istnieje
-        if ($user->profile_picture && file_exists(public_path($user->profile_picture))) {
-            @unlink(public_path($user->profile_picture));
-        }
-    
-        // Przeniesienie nowego pliku
-        try {
-            $file->move($directory, $fileName);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => 'Błąd zapisu pliku.'], 500);
-        }
-    
-        // Aktualizacja w bazie danych
-        $user->update(['profile_picture' => $filePath]);
-    
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Zdjęcie profilowe zaktualizowane pomyślnie.',
-            'path' => asset($filePath)
-        ]);
-    }
-    
-    
-    
     
 
 

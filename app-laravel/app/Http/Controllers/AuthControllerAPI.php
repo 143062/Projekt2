@@ -13,7 +13,24 @@ use Illuminate\Support\Facades\Log;
 class AuthControllerAPI extends Controller
 {
     /**
-     * Rejestracja nowego użytkownika.
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     summary="Rejestracja nowego użytkownika",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "login", "password"},
+     *             @OA\Property(property="email", type="string", example="user@example.com"),
+     *             @OA\Property(property="login", type="string", example="user123"),
+     *             @OA\Property(property="password", type="string", example="securepassword"),
+     *             @OA\Property(property="password_confirmation", type="string", example="securepassword")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Użytkownik zarejestrowany"),
+     *     @OA\Response(response=422, description="Błąd walidacji"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
     public function register(Request $request)
     {
@@ -68,7 +85,7 @@ class AuthControllerAPI extends Controller
                     'id' => $user->id,
                     'login' => $user->login,
                     'email' => $user->email,
-                    'role' => $userRole->name, // Zwracamy nazwę roli użytkownika
+                    'role' => $userRole->name,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -80,7 +97,22 @@ class AuthControllerAPI extends Controller
     }
 
     /**
-     * Logowanie użytkownika.
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Logowanie użytkownika",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"login_or_email", "password"},
+     *             @OA\Property(property="login_or_email", type="string", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", example="securepassword")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Zalogowano pomyślnie"),
+     *     @OA\Response(response=401, description="Nieprawidłowe dane logowania"),
+     *     @OA\Response(response=500, description="Błąd serwera")
+     * )
      */
     public function login(Request $request)
     {
@@ -99,7 +131,6 @@ class AuthControllerAPI extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Znajdź użytkownika po loginie lub emailu i załaduj jego rolę
         $loginOrEmail = $request->login_or_email;
         $isEmail = str_contains($loginOrEmail, '@');
         $user = $isEmail
@@ -112,7 +143,6 @@ class AuthControllerAPI extends Controller
         }
 
         try {
-            // Usunięcie wszystkich poprzednich tokenów i wygenerowanie nowego
             $user->tokens()->delete();
             $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -125,7 +155,7 @@ class AuthControllerAPI extends Controller
                     'id' => $user->id,
                     'login' => $user->login,
                     'email' => $user->email,
-                    'role' => $user->role->name, // Zwracamy nazwę roli użytkownika
+                    'role' => $user->role->name,
                 ],
             ], 200);
         } catch (\Exception $e) {
@@ -135,7 +165,14 @@ class AuthControllerAPI extends Controller
     }
 
     /**
-     * Wylogowanie użytkownika.
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="Wylogowanie użytkownika",
+     *     tags={"Auth"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Wylogowano pomyślnie"),
+     *     @OA\Response(response=401, description="Nieautoryzowany")
+     * )
      */
     public function logout(Request $request)
     {
@@ -146,12 +183,10 @@ class AuthControllerAPI extends Controller
                 return response()->json(['message' => 'Użytkownik nie jest zalogowany.'], 401);
             }
 
-            // Usunięcie wszystkich tokenów użytkownika (wylogowanie ze wszystkich urządzeń)
             $user->tokens()->delete();
-
             Log::info('Użytkownik wylogowany pomyślnie', ['user_id' => $user->id]);
 
-            Session::flush(); // Czyszczenie sesji
+            Session::flush();
 
             return response()->json([
                 'message' => 'Wylogowano pomyślnie ze wszystkich urządzeń.',
@@ -161,6 +196,7 @@ class AuthControllerAPI extends Controller
             return response()->json(['message' => 'Wystąpił błąd podczas wylogowywania.'], 500);
         }
     }
+
 
     /**
      * Pobieranie roli aktualnie zalogowanego użytkownika.

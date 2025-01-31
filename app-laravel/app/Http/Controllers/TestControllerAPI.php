@@ -5,7 +5,12 @@ namespace App\Http\Controllers;
 class TestControllerAPI extends Controller
 {
     /**
-     * Endpoint testowy API.
+     * @OA\Get(
+     *     path="/api/test",
+     *     summary="Endpoint testowy API",
+     *     tags={"Test"},
+     *     @OA\Response(response=200, description="Test działa poprawnie")
+     * )
      */
     public function index()
     {

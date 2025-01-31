@@ -25,15 +25,21 @@ class AdminControllerAPI extends Controller
     }
 
     /**
-     * Pobieranie listy użytkowników.
-     * Endpoint: GET /api/admin/users
+     * @OA\Get(
+     *     path="/api/admin/users",
+     *     summary="Pobieranie listy użytkowników",
+     *     tags={"Admin"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(response=200, description="Lista użytkowników"),
+     *     @OA\Response(response=403, description="Brak uprawnień")
+     * )
      */
     public function getUsers()
     {
         if ($error = $this->checkAdmin()) return $error;
 
         try {
-            $users = User::with('role')->get(); // Pobieranie użytkowników z relacją do ról
+            $users = User::with('role')->get();
             return response()->json(['status' => 'success', 'data' => $users], 200);
         } catch (\Exception $e) {
             Log::error('Błąd podczas pobierania listy użytkowników', ['error' => $e->getMessage()]);
@@ -41,9 +47,27 @@ class AdminControllerAPI extends Controller
         }
     }
 
+
     /**
-     * Dodawanie użytkownika.
-     * Endpoint: POST /api/admin/users
+     * @OA\Post(
+     *     path="/api/admin/users",
+     *     summary="Dodawanie użytkownika",
+     *     tags={"Admin"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "login", "password", "role"},
+     *             @OA\Property(property="email", type="string", example="user@example.com"),
+     *             @OA\Property(property="login", type="string", example="newuser"),
+     *             @OA\Property(property="password", type="string", example="securepassword"),
+     *             @OA\Property(property="role", type="string", example="user")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Użytkownik został dodany"),
+     *     @OA\Response(response=403, description="Brak uprawnień"),
+     *     @OA\Response(response=400, description="Nie znaleziono roli")
+     * )
      */
     public function addUser(Request $request)
     {
@@ -76,9 +100,24 @@ class AdminControllerAPI extends Controller
         }
     }
 
+
     /**
-     * Usuwanie użytkownika.
-     * Endpoint: DELETE /api/admin/users/{id}
+     * @OA\Delete(
+     *     path="/api/admin/users/{id}",
+     *     summary="Usuwanie użytkownika",
+     *     tags={"Admin"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID użytkownika do usunięcia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Użytkownik został usunięty"),
+     *     @OA\Response(response=403, description="Brak uprawnień"),
+     *     @OA\Response(response=404, description="Użytkownik nie istnieje")
+     * )
      */
     public function deleteUser($id)
     {
@@ -97,6 +136,63 @@ class AdminControllerAPI extends Controller
             return response()->json(['status' => 'error', 'message' => 'Nie udało się usunąć użytkownika.'], 500);
         }
     }
+
+
+    /**
+     * @OA\Put(
+     *     path="/api/admin/users/{id}/password",
+     *     summary="Zmiana hasła użytkownika przez administratora",
+     *     tags={"Admin"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID użytkownika, którego hasło ma zostać zmienione",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"password"},
+     *             @OA\Property(property="password", type="string", example="newsecurepassword")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Hasło użytkownika zostało zmienione"),
+     *     @OA\Response(response=403, description="Brak uprawnień"),
+     *     @OA\Response(response=404, description="Użytkownik nie istnieje")
+     * )
+     */
+    public function changeUserPassword(Request $request, $id)
+    {
+        if ($error = $this->checkAdmin()) return $error;
+
+        $validatedData = $request->validate([
+            'password' => 'required|string|min:6',
+        ]);
+
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Użytkownik nie istnieje.'], 404);
+            }
+
+            $user->password = Hash::make($validatedData['password']);
+            $user->save();
+
+            return response()->json(['status' => 'success', 'message' => 'Hasło użytkownika zostało zmienione.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas zmiany hasła użytkownika', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Nie udało się zmienić hasła.'], 500);
+        }
+    }
+
+
+
+
+
+
+
 
             /**
              * Eksport bazy danych.
@@ -132,132 +228,96 @@ class AdminControllerAPI extends Controller
             }
 
 
-/**
- * Import bazy danych.
- * Endpoint: POST /api/admin/sql-import
- */
-public function importDatabase(Request $request)
-{
-    if ($error = $this->checkAdmin()) return $error;
+            /**
+             * Import bazy danych.
+             * Endpoint: POST /api/admin/sql-import
+             */
+            public function importDatabase(Request $request)
+            {
+                if ($error = $this->checkAdmin()) return $error;
 
-    $validated = $request->validate([
-        'sql_file' => 'required|file|mimes:sql',
-    ]);
+                $validated = $request->validate([
+                    'sql_file' => 'required|file|mimes:sql',
+                ]);
 
-    try {
-        // 📌 **Zapisujemy plik do `database/imports/`**
-        $destinationPath = base_path('database/imports'); // Folder do przechowywania plików importu
-        if (!is_dir($destinationPath)) {
-            mkdir($destinationPath, 0777, true); // Tworzenie katalogu, jeśli nie istnieje
-        }
+                try {
+                    // 📌 **Zapisujemy plik do `database/imports/`**
+                    $destinationPath = base_path('database/imports'); // Folder do przechowywania plików importu
+                    if (!is_dir($destinationPath)) {
+                        mkdir($destinationPath, 0777, true); // Tworzenie katalogu, jeśli nie istnieje
+                    }
 
-        $fileName = 'import.sql'; // Możemy użyć dynamicznej nazwy np. `import_YYYY-MM-DD_HH-MM-SS.sql`
-        $file->move($destinationPath, $fileName);
+                    $fileName = 'import.sql'; // Możemy użyć dynamicznej nazwy np. `import_YYYY-MM-DD_HH-MM-SS.sql`
+                    $file->move($destinationPath, $fileName);
 
-        $importPath = "$destinationPath/$fileName"; // Pełna ścieżka do importowanego pliku
+                    $importPath = "$destinationPath/$fileName"; // Pełna ścieżka do importowanego pliku
 
-        // 📌 **Komenda do importu SQL**
-        $command = [
-            "psql",
-            "-h", env('DB_HOST'),
-            "-U", env('DB_USERNAME'),
-            "-d", env('DB_DATABASE'),
-            "-f", $importPath
-        ];
+                    // 📌 **Komenda do importu SQL**
+                    $command = [
+                        "psql",
+                        "-h", env('DB_HOST'),
+                        "-U", env('DB_USERNAME'),
+                        "-d", env('DB_DATABASE'),
+                        "-f", $importPath
+                    ];
 
-        $process = new Process($command);
-        $process->setTimeout(120); // ⏳ Limit czasu na 2 minuty
-        $process->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
+                    $process = new Process($command);
+                    $process->setTimeout(120); // ⏳ Limit czasu na 2 minuty
+                    $process->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
 
-        $process->run();
+                    $process->run();
 
-        // 📌 **Logowanie wyników procesu**
-        Log::info('Import SQL - Output:', ['output' => $process->getOutput()]);
-        Log::info('Import SQL - Error Output:', ['error_output' => $process->getErrorOutput()]);
+                    // 📌 **Logowanie wyników procesu**
+                    Log::info('Import SQL - Output:', ['output' => $process->getOutput()]);
+                    Log::info('Import SQL - Error Output:', ['error_output' => $process->getErrorOutput()]);
 
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
+                    if (!$process->isSuccessful()) {
+                        throw new ProcessFailedException($process);
+                    }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Baza danych została zaimportowana.',
-        ], 200);
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Baza danych została zaimportowana.',
+                    ], 200);
 
-    } catch (ProcessFailedException $e) {
-        Log::error('Błąd w procesie importu SQL', [
-            'error' => $e->getMessage(),
-            'process_output' => $process->getOutput(),
-            'process_error' => $process->getErrorOutput(),
-        ]);
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Nie udało się zaimportować bazy danych. Sprawdź logi.',
-        ], 500);
+                } catch (ProcessFailedException $e) {
+                    Log::error('Błąd w procesie importu SQL', [
+                        'error' => $e->getMessage(),
+                        'process_output' => $process->getOutput(),
+                        'process_error' => $process->getErrorOutput(),
+                    ]);
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Nie udało się zaimportować bazy danych. Sprawdź logi.',
+                    ], 500);
 
-    } catch (\Exception $e) {
-        Log::error('Błąd podczas importowania bazy danych', ['error' => $e->getMessage()]);
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Nie udało się zaimportować bazy danych.',
-        ], 500);
-    }
-}
-
-
-
-    /**
-     * Uruchamianie testów jednostkowych.
-     * Endpoint: POST /api/admin/run-tests
-     */
-    public function runTests()
-    {
-        if ($error = $this->checkAdmin()) return $error;
-
-        try {
-            $output = shell_exec("php artisan test --parallel");
-            return response()->json(['status' => 'success', 'output' => $output], 200);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas uruchamiania testów', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się uruchomić testów.'], 500);
-        }
-    }
+                } catch (\Exception $e) {
+                    Log::error('Błąd podczas importowania bazy danych', ['error' => $e->getMessage()]);
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Nie udało się zaimportować bazy danych.',
+                    ], 500);
+                }
+            }
 
 
 
+            /**
+             * Uruchamianie testów jednostkowych.
+             * Endpoint: POST /api/admin/run-tests
+             */
+            public function runTests()
+            {
+                if ($error = $this->checkAdmin()) return $error;
 
-
-/**
- * Zmiana hasła użytkownika przez administratora.
- * Endpoint: PUT /api/admin/users/{id}/password
- */
-public function changeUserPassword(Request $request, $id)
-{
-    if ($error = $this->checkAdmin()) return $error;
-
-    $validatedData = $request->validate([
-        'password' => 'required|string|min:6',
-    ]);
-
-    try {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'Użytkownik nie istnieje.'], 404);
-        }
-
-        $user->password = Hash::make($validatedData['password']);
-        $user->save();
-
-        return response()->json(['status' => 'success', 'message' => 'Hasło użytkownika zostało zmienione.'], 200);
-    } catch (\Exception $e) {
-        Log::error('Błąd podczas zmiany hasła użytkownika', ['error' => $e->getMessage()]);
-        return response()->json(['status' => 'error', 'message' => 'Nie udało się zmienić hasła.'], 500);
-    }
-}
-
-
-
-
+                try {
+                    $output = shell_exec("php artisan test --parallel");
+                    return response()->json(['status' => 'success', 'output' => $output], 200);
+                } catch (\Exception $e) {
+                    Log::error('Błąd podczas uruchamiania testów', ['error' => $e->getMessage()]);
+                    return response()->json(['status' => 'error', 'message' => 'Nie udało się uruchomić testów.'], 500);
+                }
+            }
 
 
 

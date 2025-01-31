@@ -1,0 +1,768 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Notatek",
+        "description": "Dokumentacja API dla systemu notatek",
+        "contact": {
+            "email": "admin@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Pobieranie listy użytkowników",
+                "operationId": "b3f5041876ff3c478354eeed0385a340",
+                "responses": {
+                    "200": {
+                        "description": "Lista użytkowników"
+                    },
+                    "403": {
+                        "description": "Brak uprawnień"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Dodawanie użytkownika",
+                "operationId": "eb4bd5ca5c6b27a7bf567a6ea818f12d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "login",
+                                    "password",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "user@example.com"
+                                    },
+                                    "login": {
+                                        "type": "string",
+                                        "example": "newuser"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "securepassword"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "user"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Użytkownik został dodany"
+                    },
+                    "403": {
+                        "description": "Brak uprawnień"
+                    },
+                    "400": {
+                        "description": "Nie znaleziono roli"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{id}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Usuwanie użytkownika",
+                "operationId": "7da83cb197359d23440e747c21e4a31e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID użytkownika do usunięcia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Użytkownik został usunięty"
+                    },
+                    "403": {
+                        "description": "Brak uprawnień"
+                    },
+                    "404": {
+                        "description": "Użytkownik nie istnieje"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{id}/password": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Zmiana hasła użytkownika przez administratora",
+                "operationId": "6aa8d85fb1f38f1f3c2dd17f87069970",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID użytkownika, którego hasło ma zostać zmienione",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "example": "newsecurepassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hasło użytkownika zostało zmienione"
+                    },
+                    "403": {
+                        "description": "Brak uprawnień"
+                    },
+                    "404": {
+                        "description": "Użytkownik nie istnieje"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Rejestracja nowego użytkownika",
+                "operationId": "c0863bef22b87dded4e00f43a25da91c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "login",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "user@example.com"
+                                    },
+                                    "login": {
+                                        "type": "string",
+                                        "example": "user123"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "securepassword"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "securepassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Użytkownik zarejestrowany"
+                    },
+                    "422": {
+                        "description": "Błąd walidacji"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logowanie użytkownika",
+                "operationId": "0786998f6014156598117db7dcdb82d0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "login_or_email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "login_or_email": {
+                                        "type": "string",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "securepassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Zalogowano pomyślnie"
+                    },
+                    "401": {
+                        "description": "Nieprawidłowe dane logowania"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Wylogowanie użytkownika",
+                "operationId": "a4df9f7f964ae5e3dc802521581c1c18",
+                "responses": {
+                    "200": {
+                        "description": "Wylogowano pomyślnie"
+                    },
+                    "401": {
+                        "description": "Nieautoryzowany"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/friends": {
+            "get": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Pobieranie listy znajomych",
+                "operationId": "5025b8179fce4c9c04f86721e199da27",
+                "responses": {
+                    "200": {
+                        "description": "Lista znajomych"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Dodawanie znajomego",
+                "operationId": "33f8a5fae4af3ae188d4d8f246051401",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "friend_login"
+                                ],
+                                "properties": {
+                                    "friend_login": {
+                                        "type": "string",
+                                        "example": "friendUser"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Znajomy został dodany"
+                    },
+                    "400": {
+                        "description": "Nie można dodać siebie jako znajomego"
+                    },
+                    "403": {
+                        "description": "Nie można dodać administratora"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{id}": {
+            "delete": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Usuwanie znajomego",
+                "operationId": "af6b2a8851a0c9c864c2a8e21aa196f6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID znajomego do usunięcia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Znajomy został usunięty"
+                    },
+                    "404": {
+                        "description": "Nie znaleziono użytkownika"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notes": {
+            "get": {
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Pobieranie listy notatek użytkownika",
+                "operationId": "ea5a92fa2c7665842a92c619f2301f25",
+                "responses": {
+                    "200": {
+                        "description": "Lista notatek"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Tworzenie nowej notatki",
+                "operationId": "bb27bc018733c2dc72e7efd0713b0dac",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Nowa notatka"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Treść notatki"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Notatka została utworzona"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notes/{id}": {
+            "put": {
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Edycja notatki",
+                "operationId": "2566aae29ac3263034f7f28bcad65cb0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID notatki do edycji",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Zaktualizowana notatka"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nowa treść notatki"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notatka została zaktualizowana"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Usuwanie notatki",
+                "operationId": "a7afeb471a57034411e5831af62ce11e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID notatki do usunięcia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notatka została usunięta"
+                    },
+                    "404": {
+                        "description": "Nie znaleziono notatki"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notes/shared": {
+            "get": {
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Pobieranie współdzielonych notatek",
+                "operationId": "9f242983783f1672314b6b9c7c705a21",
+                "responses": {
+                    "200": {
+                        "description": "Lista współdzielonych notatek"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/test": {
+            "get": {
+                "tags": [
+                    "Test"
+                ],
+                "summary": "Endpoint testowy API",
+                "operationId": "ba6d16049cc7800a0461f6e2d5207353",
+                "responses": {
+                    "200": {
+                        "description": "Test działa poprawnie"
+                    }
+                }
+            }
+        },
+        "/api/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Pobieranie profilu zalogowanego użytkownika",
+                "operationId": "d4bdd8cfcb7e0150221c67124f47874d",
+                "responses": {
+                    "200": {
+                        "description": "Dane użytkownika"
+                    },
+                    "401": {
+                        "description": "Nieautoryzowany dostęp"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Aktualizacja profilu użytkownika",
+                "operationId": "7e008f8cf5f01a905c53edd0126184bc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "user@example.com"
+                                    },
+                                    "login": {
+                                        "type": "string",
+                                        "example": "newuser"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "newsecurepassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil zaktualizowany pomyślnie"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/dashboard": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Wyświetlanie dashboardu użytkownika",
+                "operationId": "a1c7c0f70150a745a2eeb2a4d7ba890c",
+                "responses": {
+                    "200": {
+                        "description": "Dane użytkownika i jego notatki"
+                    },
+                    "401": {
+                        "description": "Nieautoryzowany dostęp"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/profile-picture": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Aktualizacja zdjęcia profilowego użytkownika",
+                "operationId": "048354cf6daf0fba6f8b4dd3a7931f34",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "profile_picture": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Zdjęcie profilowe zaktualizowane pomyślnie"
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy format pliku"
+                    },
+                    "500": {
+                        "description": "Błąd serwera"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Friends",
+            "description": "Friends"
+        },
+        {
+            "name": "Notes",
+            "description": "Notes"
+        },
+        {
+            "name": "Test",
+            "description": "Test"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Wpisz token w formacie (Bearer <token>)",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        {
+            "sanctum": []
+        }
+    ]
+}
