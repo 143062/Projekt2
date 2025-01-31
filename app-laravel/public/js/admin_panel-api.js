@@ -1,12 +1,34 @@
 window.AdminAPI = {
-    // Pobiera listę użytkowników
+    // 📌 Pobiera listę użytkowników
+    // 📌 Pobiera listę użytkowników
     getUsers: function () {
         return fetch('/api/admin/users', {
             headers: Auth.attachAuthHeaders()
         })
         .then(response => {
-            if (!response.ok) throw new Error(`Błąd serwera: ${response.status}`);
-            return response.json();
+            const contentType = response.headers.get("content-type");
+
+            // 📌 Jeśli serwer zwraca HTML zamiast JSON (np. 403 lub 401)
+            if (!contentType || !contentType.includes("application/json")) {
+                console.error("[admin_panel-api.js] Serwer zwrócił niepoprawną odpowiedź (prawdopodobnie 403/401).");
+                Auth.logout(); // 🔹 Automatyczne wylogowanie
+                return Promise.reject({ message: "Niepoprawna odpowiedź serwera." });
+            }
+
+            return response.json().then(jsonData => {
+                if (!response.ok) {
+                    console.error(`[admin_panel-api.js] Błąd API: ${response.status}`, jsonData);
+
+                    // 📌 Obsługa braku tokena (`401 Unauthorized`) lub braku uprawnień (`403 Forbidden`)
+                    if (response.status === 401 || response.status === 403) {
+                        console.warn("[admin_panel-api.js] Brak uprawnień lub brak tokena – użytkownik zostanie wylogowany.");
+                        Auth.logout(); // 🔹 Automatyczne przekierowanie do /login
+                    }
+
+                    return Promise.reject(jsonData);
+                }
+                return jsonData;
+            });
         })
         .catch(error => {
             console.error("[admin_panel-api.js] Błąd pobierania użytkowników:", error);
