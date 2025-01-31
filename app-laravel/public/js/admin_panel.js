@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const deleteButtons = document.querySelectorAll('.delete-button');
-    const passwordButtons = document.querySelectorAll('.reset-password-button');
-    const modal = document.getElementById('adminPasswordResetModal');
-    const closeModal = document.querySelector('.close');
-    const modalUsername = document.getElementById('modal-username');
-    const userIdInput = document.getElementById('user-id');
     const searchInput = document.getElementById('user-search');
     const userTable = document.getElementById('user-list');
     const importStatus = document.getElementById('import-status');
@@ -17,6 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const roleSelect = document.getElementById("role");
     const runTestsButton = document.getElementById('run-tests-button');
     const testResults = document.getElementById('test-results');
+    const modal = document.getElementById('adminPasswordResetModal');
+    const closeModal = document.querySelector('.close');
+    const modalUsername = document.getElementById('modal-username');
+    const userIdInput = document.getElementById('user-id');
+    const newPasswordInput = document.getElementById('new-password'); 
+    const resetPasswordForm = document.getElementById("reset-password-form"); 
 
     // Dodaj animację ładowania
     const loader = document.createElement('div');
@@ -117,60 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchAndUpdateUserList();
 
 
-    
-    // Usuwa użytkownika
-    window.deleteUser = function (userId) {
-        AdminAPI.deleteUser(userId).then(() => {
-            //alert("Użytkownik usunięty!");
-            fetchAndUpdateUserList(); // Odśwież tabelę użytkowników
-        });
-    }
-    
 
-
-
-
-
-
-
-// Funkcja do dynamicznego usuwania użytkownika bez potwierdzenia
-window.attachDeleteButtonEvents = function () {
-    const deleteButtons = document.querySelectorAll('.delete-button');
-
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            const userId = this.dataset.userId; // Pobranie userId z `data-user-id`
-
-            if (!userId) {
-                console.error('[admin_panel.js] Błąd: Nie znaleziono `data-user-id` w przycisku usuwania.');
-                return;
-            }
-
-            logToConsole('Usuwanie użytkownika o ID', userId);
-
-            AdminAPI.deleteUser(userId).then(data => {
-                if (data && data.status === 'success') {
-                    const row = this.closest('tr');
-                    if (row) row.remove();
-                    logToConsole(`Użytkownik o ID ${userId} został usunięty.`, data);
-                } else {
-                    logToConsole(`Błąd podczas usuwania użytkownika o ID ${userId}`, data ? data.message : "Nieznany błąd");
-                }
-            }).catch(error => {
-                logToConsole('Błąd podczas usuwania użytkownika', error.message);
-                alert(`Nie udało się usunąć użytkownika: ${error.message}`);
-            });
-        });
-    });
-};
-
-
-
-
-
-
-    
 
 // Obsługa formularza dodawania użytkownika
 
@@ -241,27 +188,121 @@ if (addUserForm) {
         });
     });
 
+
+
     
-    // Funkcja do obsługi przycisków resetowania hasła
-    function attachPasswordButtonEvents() {
-        const passwordButtons = document.querySelectorAll('.reset-password-button');
-        passwordButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const userId = this.getAttribute('data-user-id');
-                const login = this.getAttribute('data-login');
-                modalUsername.textContent = login;
-                userIdInput.value = userId;
-                modal.style.display = 'flex';
-                logToConsole(`Kliknięto przycisk resetowania hasła dla użytkownika o ID: ${userId}`, `Login: ${login}`);
+
+        //  Funkcja do usuwania użytkownika
+        function deleteUser(userId) {
+            AdminAPI.deleteUser(userId).then(() => {
+                fetchAndUpdateUserList(); // 📌 Odśwież tabelę użytkowników po usunięciu
             });
-        });
-    }
+        }
+    
+        //  Funkcja do dynamicznego przypisywania zdarzeń dla przycisków usuwania
+        function attachDeleteButtonEvents() {
+            const deleteButtons = document.querySelectorAll('.delete-button');
+    
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const userId = this.dataset.userId; // Pobranie userId z `data-user-id`
+    
+                    if (!userId) {
+                        console.error('[admin_panel.js] Błąd: Nie znaleziono `data-user-id` w przycisku usuwania.');
+                        return;
+                    }
+    
+                    logToConsole('Usuwanie użytkownika o ID', userId);
+    
+                    AdminAPI.deleteUser(userId).then(data => {
+                        if (data && data.status === 'success') {
+                            const row = this.closest('tr');
+                            if (row) row.remove();
+                            logToConsole(`Użytkownik o ID ${userId} został usunięty.`, data);
+                        } else {
+                            logToConsole(`Błąd podczas usuwania użytkownika o ID ${userId}`, data ? data.message : "Nieznany błąd");
+                        }
+                    }).catch(error => {
+                        logToConsole('Błąd podczas usuwania użytkownika', error.message);
+                        alert(`Nie udało się usunąć użytkownika: ${error.message}`);
+                    });
+                });
+            });
+        }
+    
+        //  Funkcja do obsługi przycisków resetowania hasła (otwieranie modala)
+        function attachPasswordButtonEvents() {
+            const passwordButtons = document.querySelectorAll('.reset-password-button');
+            passwordButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const login = this.getAttribute('data-login');
+                    modalUsername.textContent = login;
+                    userIdInput.value = userId;
+                    modal.style.display = 'flex';
+                    logToConsole(`Kliknięto przycisk resetowania hasła dla użytkownika o ID: ${userId}`, `Login: ${login}`);
+                });
+            });
+        }
+    
+        //  Obsługa formularza resetowania hasła
+        if (resetPasswordForm) {
+            resetPasswordForm.addEventListener("submit", function(event) {
+                event.preventDefault(); //  Zapobiega odświeżeniu strony
+        
+                const userId = userIdInput.value.trim();
+                const newPassword = newPasswordInput.value.trim();
+        
+                console.log("[admin_panel.js] Kliknięto 'Zresetuj hasło' dla użytkownika:", userId);
+                console.log("[admin_panel.js] Przekazywane nowe hasło:", newPassword);
+        
+                if (!userId || !newPassword) {
+                    alert("Proszę podać nowe hasło.");
+                    return;
+                }
+        
+                //  Wysyłamy nowe hasło do API
+                AdminAPI.changeUserPassword(userId, newPassword)
+                    .then(data => {
+                        console.log("[admin_panel.js] Odpowiedź API:", data);
+                        if (data.status === "success") {
+                            // 🔹 ZAMIENIAMY ALERT NA AUTOMATYCZNE ZAMKNIĘCIE MODALA
+                            modal.style.display = "none"; //  Zamykamy modal po sukcesie
+                            newPasswordInput.value = ""; // Czyszczenie pola hasła
+                        } else {
+                            alert("Błąd podczas resetowania hasła: " + (data.message || "Nieznany błąd"));
+                        }
+                    })
+                    .catch(error => {
+                        console.error("[admin_panel.js] Błąd resetowania hasła:", error);
+                        alert("Wystąpił błąd podczas resetowania hasła.");
+                    });
+            });
+        }
+        
+        
+    
+        //  Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków
+        attachDeleteButtonEvents();
+        attachPasswordButtonEvents();
+
+    
 
 
-    // Wywołanie funkcji do dynamicznego przypisywania zdarzeń dla przycisków usuwania
-    attachDeleteButtonEvents();
-    attachPasswordButtonEvents();
 
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 
 /////////////////////////// TO ZOSTALO STOCKOWE ///////////////////
@@ -346,29 +387,44 @@ if (sqlImportForm) {
             return;
         }
 
+        const file = sqlFileInput.files[0];
+
+        // 📌 Sprawdzamy poprawność formatu pliku przed wysłaniem
+        const allowedMimeTypes = ['application/sql', 'text/sql', 'application/octet-stream'];
+        const allowedExtensions = ['sql'];
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+
+        if (!allowedMimeTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+            alert("Nieprawidłowy format pliku. Wybierz plik .sql.");
+            return;
+        }
+
         const formData = new FormData();
-        formData.append("sql_file", sqlFileInput.files[0]);
+        formData.append("sql_file", file);
 
         const importButton = document.getElementById("sql-import-button");
         importButton.disabled = true;
 
-        AdminAPI.importDatabase(formData).then(data => { // Poprawione przekazywanie `formData`
-            if (data && data.status === "success") {
-                showImportStatus("Baza danych została pomyślnie przywrócona!", true);
-            } else {
+        AdminAPI.importDatabase(formData)
+            .then(data => {
+                if (data && data.status === "success") {
+                    showImportStatus("Baza danych została pomyślnie przywrócona!", true);
+
+                    // Po imporcie odświeżamy listę użytkowników
+                    fetchAndUpdateUserList();
+                } else {
+                    showImportStatus("Błąd podczas importu bazy danych.", false);
+                }
+            })
+            .catch(error => {
+                console.error("[admin_panel.js] Błąd importu bazy danych:", error);
                 showImportStatus("Błąd podczas importu bazy danych.", false);
-            }
-        }).catch(error => {
-            console.error("[admin_panel.js] Błąd importu bazy danych:", error);
-            showImportStatus("Błąd podczas importu bazy danych.", false);
-        }).finally(() => {
-            importButton.disabled = false;
-        });
+            })
+            .finally(() => {
+                importButton.disabled = false;
+            });
     });
 }
-
-
-
 
 
 

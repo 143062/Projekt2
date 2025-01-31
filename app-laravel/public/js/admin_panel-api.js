@@ -50,6 +50,8 @@ window.AdminAPI = {
         });
     },
 
+
+
     // Importuje bazę danych
     importDatabase: function (formData) {
         return fetch('/api/admin/sql-import', {
@@ -86,9 +88,15 @@ window.AdminAPI = {
         });
     },
 
+
+
     // Resetuje hasło użytkownika
     changeUserPassword: function (userId, newPassword) {
-        return fetch(`/api/admin/users/${userId}/password`, {
+        const apiUrl = `/api/admin/users/${userId}/password`; // 🔹 Upewniamy się, że URL jest poprawny
+        console.log("[admin_panel-api.js] Wysyłanie żądania PUT na:", apiUrl);
+        console.log("[admin_panel-api.js] Dane wysyłane do API:", { password: newPassword });
+    
+        return fetch(apiUrl, { 
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -97,6 +105,7 @@ window.AdminAPI = {
             body: JSON.stringify({ password: newPassword }),
         })
         .then(response => {
+            console.log("[admin_panel-api.js] Otrzymano odpowiedź z serwera:", response);
             if (!response.ok) throw new Error(`Błąd serwera: ${response.status}`);
             return response.json();
         })
@@ -104,7 +113,8 @@ window.AdminAPI = {
             console.error("[admin_panel-api.js] Błąd resetowania hasła:", error);
             return { status: "error", message: error.message };
         });
-    },
+    }
+    ,
 
 
     

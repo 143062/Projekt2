@@ -121,21 +121,78 @@ class AdminControllerAPI extends Controller
      */
     public function deleteUser($id)
     {
-        if ($error = $this->checkAdmin()) return $error;
-
+        Log::info("🗑️ Otrzymano żądanie usunięcia użytkownika", ['user_id' => $id]);
+    
+        if ($error = $this->checkAdmin()) {
+            return $error;
+        }
+    
         try {
+            // 📌 Sprawdzenie, czy użytkownik istnieje
             $user = User::find($id);
             if (!$user) {
-                return response()->json(['status' => 'error', 'message' => 'Użytkownik nie istnieje.'], 404);
+                Log::error("❌ Użytkownik nie istnieje", ['user_id' => $id]);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Użytkownik nie istnieje.',
+                ], 404);
             }
-
+    
+            // 📌 Usuwanie folderu użytkownika z `public/img/profile/`
+            $userFolder = public_path("img/profile/$id");
+            if (file_exists($userFolder)) {
+                $this->deleteDirectory($userFolder);
+                Log::info("✅ Usunięto folder użytkownika", ['user_folder' => $userFolder]);
+            } else {
+                Log::info("ℹ️ Folder użytkownika nie istnieje, pomijam usuwanie", ['user_folder' => $userFolder]);
+            }
+    
+            // 📌 Usuwanie użytkownika
             $user->delete();
-            return response()->json(['status' => 'success', 'message' => 'Użytkownik został usunięty.'], 200);
+            Log::info("✅ Użytkownik usunięty pomyślnie", ['user_id' => $id]);
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Użytkownik został usunięty.',
+            ], 200);
+    
         } catch (\Exception $e) {
-            Log::error('Błąd podczas usuwania użytkownika', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się usunąć użytkownika.'], 500);
+            Log::error("❌ Błąd podczas usuwania użytkownika", ['error' => $e->getMessage()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nie udało się usunąć użytkownika.',
+            ], 500);
         }
     }
+    
+
+
+/**
+ * Usuwa folder użytkownika wraz z jego zawartością.
+ */
+private function deleteDirectory($dir)
+{
+    if (!file_exists($dir)) {
+        return;
+    }
+
+    foreach (scandir($dir) as $file) {
+        if ($file === '.' || $file === '..') {
+            continue;
+        }
+
+        $filePath = "$dir/$file";
+        if (is_dir($filePath)) {
+            $this->deleteDirectory($filePath); // Rekursywne usuwanie podfolderów
+        } else {
+            unlink($filePath); // Usunięcie pliku
+        }
+    }
+
+    rmdir($dir); // Usunięcie głównego folderu
+}
+
+
 
 
     /**
@@ -163,36 +220,53 @@ class AdminControllerAPI extends Controller
      *     @OA\Response(response=404, description="Użytkownik nie istnieje")
      * )
      */
-    public function changeUserPassword(Request $request, $id)
-    {
-        if ($error = $this->checkAdmin()) return $error;
-
-        $validatedData = $request->validate([
-            'password' => 'required|string|min:6',
-        ]);
-
-        try {
-            $user = User::find($id);
-            if (!$user) {
-                return response()->json(['status' => 'error', 'message' => 'Użytkownik nie istnieje.'], 404);
-            }
-
-            $user->password = Hash::make($validatedData['password']);
-            $user->save();
-
-            return response()->json(['status' => 'success', 'message' => 'Hasło użytkownika zostało zmienione.'], 200);
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas zmiany hasła użytkownika', ['error' => $e->getMessage()]);
-            return response()->json(['status' => 'error', 'message' => 'Nie udało się zmienić hasła.'], 500);
-        }
-    }
 
 
-
-
-
-
-
+     public function changeUserPassword(Request $request, $id)
+     {
+         Log::info("🔹 Otrzymano żądanie zmiany hasła", ['user_id' => $id]);
+     
+         if ($error = $this->checkAdmin()) {
+             return $error;
+         }
+     
+         try {
+             $validatedData = $request->validate([
+                 'password' => 'required|string|min:6',
+             ]);
+         } catch (\Illuminate\Validation\ValidationException $e) {
+             Log::error("❌ Błąd walidacji hasła", ['errors' => $e->errors()]);
+             return response()->json([
+                 'status' => 'error',
+                 'message' => 'Błąd walidacji hasła. Hasło musi mieć co najmniej 6 znaków.',
+                 'errors' => $e->errors(),
+             ], 422);
+         }
+     
+         try {
+             $user = User::where('id', $id)->firstOrFail();
+             $user->password = Hash::make($validatedData['password']);
+             $user->save();
+     
+             return response()->json([
+                 'status' => 'success',
+                 'message' => 'Hasło użytkownika zostało zmienione.',
+             ], 200);
+     
+         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+             return response()->json([
+                 'status' => 'error',
+                 'message' => 'Użytkownik nie istnieje.',
+             ], 404);
+         } catch (\Exception $e) {
+             return response()->json([
+                 'status' => 'error',
+                 'message' => 'Nie udało się zmienić hasła.',
+             ], 500);
+         }
+     }
+     
+     
 
             /**
              * Eksport bazy danych.
@@ -228,77 +302,105 @@ class AdminControllerAPI extends Controller
             }
 
 
-            /**
-             * Import bazy danych.
-             * Endpoint: POST /api/admin/sql-import
-             */
-            public function importDatabase(Request $request)
-            {
-                if ($error = $this->checkAdmin()) return $error;
+/**
+ * Import bazy danych (nadpisuje całą bazę).
+ * Endpoint: POST /api/admin/sql-import
+ */
+/**
+ * Import bazy danych (nadpisuje całą bazę).
+ * Endpoint: POST /api/admin/sql-import
+ */
+public function importDatabase(Request $request)
+{
+    if ($error = $this->checkAdmin()) return $error;
 
-                $validated = $request->validate([
-                    'sql_file' => 'required|file|mimes:sql',
-                ]);
+    try {
+        // 📌 Sprawdzenie, czy plik został przesłany
+        if (!$request->hasFile('sql_file') || !$request->file('sql_file')->isValid()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nie przesłano poprawnego pliku SQL.',
+            ], 400);
+        }
 
-                try {
-                    // 📌 **Zapisujemy plik do `database/imports/`**
-                    $destinationPath = base_path('database/imports'); // Folder do przechowywania plików importu
-                    if (!is_dir($destinationPath)) {
-                        mkdir($destinationPath, 0777, true); // Tworzenie katalogu, jeśli nie istnieje
-                    }
+        $file = $request->file('sql_file');
 
-                    $fileName = 'import.sql'; // Możemy użyć dynamicznej nazwy np. `import_YYYY-MM-DD_HH-MM-SS.sql`
-                    $file->move($destinationPath, $fileName);
+        // 📌 Walidacja pliku SQL
+        $allowedMimeTypes = ['application/sql', 'text/sql', 'application/octet-stream'];
+        $allowedExtensions = ['sql'];
 
-                    $importPath = "$destinationPath/$fileName"; // Pełna ścieżka do importowanego pliku
+        if (!in_array($file->getMimeType(), $allowedMimeTypes) && !in_array($file->getClientOriginalExtension(), $allowedExtensions)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nieprawidłowy format pliku. Wybierz plik .sql.',
+            ], 400);
+        }
 
-                    // 📌 **Komenda do importu SQL**
-                    $command = [
-                        "psql",
-                        "-h", env('DB_HOST'),
-                        "-U", env('DB_USERNAME'),
-                        "-d", env('DB_DATABASE'),
-                        "-f", $importPath
-                    ];
+        // 📌 Zapisanie pliku SQL na serwerze
+        $destinationPath = base_path('database/imports');
+        if (!is_dir($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+        }
 
-                    $process = new Process($command);
-                    $process->setTimeout(120); // ⏳ Limit czasu na 2 minuty
-                    $process->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
+        // 📌 Dynamiczna nazwa pliku, aby uniknąć nadpisywania
+        $fileName = 'import_' . now()->format('Ymd_His') . '.sql';
+        $file->move($destinationPath, $fileName);
+        $importPath = "$destinationPath/$fileName";
 
-                    $process->run();
+        // 📌 **RESET BAZY PRZED IMPORTEM** (usuwa wszystkie tabele)
+        $resetCommand = [
+            "psql",
+            "-h", env('DB_HOST'),
+            "-U", env('DB_USERNAME'),
+            "-d", env('DB_DATABASE'),
+            "-c", "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+        ];
 
-                    // 📌 **Logowanie wyników procesu**
-                    Log::info('Import SQL - Output:', ['output' => $process->getOutput()]);
-                    Log::info('Import SQL - Error Output:', ['error_output' => $process->getErrorOutput()]);
+        $resetProcess = new Process($resetCommand);
+        $resetProcess->setTimeout(60);
+        $resetProcess->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
+        $resetProcess->run();
 
-                    if (!$process->isSuccessful()) {
-                        throw new ProcessFailedException($process);
-                    }
+        if (!$resetProcess->isSuccessful()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nie udało się zresetować bazy danych przed importem.',
+            ], 500);
+        }
 
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'Baza danych została zaimportowana.',
-                    ], 200);
+        // 📌 **Import nowej bazy**
+        $importCommand = [
+            "psql",
+            "-h", env('DB_HOST'),
+            "-U", env('DB_USERNAME'),
+            "-d", env('DB_DATABASE'),
+            "-f", $importPath
+        ];
 
-                } catch (ProcessFailedException $e) {
-                    Log::error('Błąd w procesie importu SQL', [
-                        'error' => $e->getMessage(),
-                        'process_output' => $process->getOutput(),
-                        'process_error' => $process->getErrorOutput(),
-                    ]);
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Nie udało się zaimportować bazy danych. Sprawdź logi.',
-                    ], 500);
+        $importProcess = new Process($importCommand);
+        $importProcess->setTimeout(120);
+        $importProcess->setEnv(["PGPASSWORD" => env('DB_PASSWORD')]);
+        $importProcess->run();
 
-                } catch (\Exception $e) {
-                    Log::error('Błąd podczas importowania bazy danych', ['error' => $e->getMessage()]);
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Nie udało się zaimportować bazy danych.',
-                    ], 500);
-                }
-            }
+        // 📌 Sprawdzenie, czy import się powiódł
+        if (!$importProcess->isSuccessful()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nie udało się zaimportować bazy danych.',
+            ], 500);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Baza danych została nadpisana nową bazą i zaimportowana.',
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Nie udało się zaimportować bazy danych.',
+        ], 500);
+    }
+}
 
 
 
